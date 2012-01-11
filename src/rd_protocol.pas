@@ -10,15 +10,15 @@ uses
   Classes, SysUtils;
 
 const
-  DEFAULT_PROTOCOL = 6379;
+  DEFAULT_PORT = 6379;
 {$IF not defined(CR)}
-  CR               = #13;
+  CR           = #13;
 {$ENDIF}
 {$IF not defined(LF)}
-  LF               = #10;
+  LF           = #10;
 {$ENDIF}
 {$IF not defined(CRLF)}
-  CRLF             = CR+LF;
+  CRLF         = CR+LF;
 {$ENDIF}
 
 type
