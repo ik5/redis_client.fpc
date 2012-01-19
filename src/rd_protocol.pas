@@ -7,7 +7,7 @@ unit rd_protocol;
 interface
 
 uses
-  Classes, SysUtils, blcksock;
+  Classes, SysUtils, blcksock, synsock;
 
 const
   DEFAULT_PORT    = 6379;
@@ -15,13 +15,13 @@ const
 
 // Should arrive from blcksock, but if not ...
 {$IF not defined(CR)}
-  CR           = #13;
+  CR   = #13;
 {$ENDIF}
 {$IF not defined(LF)}
-  LF           = #10;
+  LF   = #10;
 {$ENDIF}
 {$IF not defined(CRLF)}
-  CRLF         = CR+LF;
+  CRLF = CR+LF;
 {$ENDIF}
 
 type
@@ -40,7 +40,6 @@ type
     property TargetPort;
     property Timeout;
   end;
-
 
 implementation
 
