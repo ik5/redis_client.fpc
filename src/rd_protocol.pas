@@ -7,10 +7,13 @@ unit rd_protocol;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, blcksock;
 
 const
-  DEFAULT_PORT = 6379;
+  DEFAULT_PORT    = 6379;
+  DEFAULT_TIMEOUT = 60000; // A minute, I hope it's not too much time...
+
+// Should arrive from blcksock, but if not ...
 {$IF not defined(CR)}
   CR           = #13;
 {$ENDIF}
@@ -23,105 +26,43 @@ const
 
 type
 
-  TSocketError = procedure (Sender          : TObject;
-                            ErrorCode       : Integer;
-                            const ErrorMsg  : String) of object;
-  TTimeOutError = procedure(Sender : TObject) of object;
-
-  { TRedisSocket }
-
-  TRedisSocket = class abstract
-  private
-    FAddress         : String;
-    FCmdTimeoutError : TTimeOutError;
-    FPort            : Word;
-    FSocketError     : TSocketError;
-
-    function GetActive : Boolean;
-    procedure SetActive(AValue : Boolean);
-  public
-    procedure Open;   virtual;
-    procedure Close;  virtual;
-    function Read : String; virtual;
-    procedure Write(const s : String); virtual;
-
-  published
-    property Active  : Boolean read GetActive write SetActive;
-    property Address : String  read FAddress  write FAddress;
-    property Port    : Word    read FPort     write FPort;
-
-    property OnError : TSocketError read FSocketError write FSocketError;
-    property OnCommandTimeoutError : TTimeOutError read  FCmdTimeoutError
-                                                   write FCmdTimeoutError;
-  end;
-
   { TRedisIO }
 
-  TRedisIO = class
-  private
-    FIO : TRedisSocket;
+  TRedisIO = class(TSynaClient)
+  protected
+    FSock : TTCPBlockSocket;
   public
-    constructor Create(AIO : TRedisSocket); virtual;
-    destructor  Destroy;                    override;
-
-    function Read : String;            virtual;
-    procedure Write(const s : string); virtual;
+    constructor Create; virtual;
+    destructor Destroy; override;
+    procedure Abort;
+  published
+    property TargetHost;
+    property TargetPort;
+    property Timeout;
   end;
+
 
 implementation
 
-{ TRedisSocket }
-
-function TRedisSocket.GetActive: Boolean;
-begin
- ;
-end;
-
-procedure TRedisSocket.SetActive(AValue: Boolean);
-begin
-
-end;
-
-procedure TRedisSocket.Open;
-begin
-
-end;
-
-procedure TRedisSocket.Close;
-begin
-
-end;
-
-function TRedisSocket.Read: String;
-begin
-
-end;
-
-procedure TRedisSocket.Write(const s: String);
-begin
-
-end;
-
 { TRedisIO }
 
-function TRedisIO.Read: String;
+constructor TRedisIO.Create;
 begin
+  FTargetPort := IntToStr(DEFAULT_PORT);
+  FTimeout    := DEFAULT_TIMEOUT;
 
-end;
-
-procedure TRedisIO.Write(const s: string);
-begin
-
-end;
-
-constructor TRedisIO.Create(AIO: TRedisSocket);
-begin
-
+  FSock := TTCPBlockSocket.Create;
 end;
 
 destructor TRedisIO.Destroy;
 begin
+  FSock.Free;
   inherited Destroy;
+end;
+
+procedure TRedisIO.Abort;
+begin
+  FSock.StopFlag := true;
 end;
 
 end.
