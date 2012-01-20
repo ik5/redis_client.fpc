@@ -1,0 +1,24 @@
+About
+=====
+The following code is an Object Pascal based Redis protocol implementation.
+The code itself was created for Free Pascal v2.6.0 and above.
+
+License
+=======
+The project is Currently in LGPL 3. I allow any free, open and commercial usage 
+of this library, however any changes, I do wish to see return back to the 
+community.
+
+Files
+=====
+  - rd_protocol.pas - Implementing the protocol itself:
+                      http://redis.io/topics/protocol
+
+
+Dependencies 
+============
+This version using Synapse using the svn version with the package for Lazarus.
+If you are interested in different Socket library, please contact me.
+
+
+
