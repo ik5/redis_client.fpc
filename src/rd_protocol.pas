@@ -43,10 +43,19 @@ uses
   Classes, SysUtils, blcksock, synsock, eventlog;
 
 const
-  DEFAULT_PORT      = 6379;
-  DEFAULT_TIMEOUT   = 60000; // A minute, I hope it's not too much time...
-  CMD_PARAMS_CHAR   = '*';
-  CMD_PARAMS_LENGTH = '$';
+ DEFAULT_PORT         = 6379;
+ DEFAULT_TIMEOUT      = 60000; // A minute, I hope it's not too much time...
+
+ CMD_PARAMS_CHAR      = '*'; // Begining of a command to send
+ CMD_PARAMS_LENGTH    = '$'; (* The length of each parameter and the command
+                                itself. *)
+
+ RPLY_SINGLE_CHAR     = '+'; // Returned a single (e.g. "+OK\r\n")
+ RPLY_ERROR_CHAR      = '-'; // Returned an error (e.g. "-Some Exception\r\n")
+ RPLY_INT_CHAR        = ':'; // Return a number (e.g. ":100\r\n")
+ RPLY_BULK_CHAR       = '$'; // Return a bulk value (e.g. "$6\r\nfoobar\r\n")
+ RPLY_MULTI_BULK_CHAR = '*'; (* Return multiple bulk value
+                                (e.g. "*1\r\n$3\r\nfoo\r\n") *)
 
 // Should arrive from blcksock, but if not ...
 {$IF not defined(CR)}
