@@ -48,7 +48,10 @@ type
 
     constructor Create; virtual;
     destructor Destroy; override;
-    procedure Abort;
+
+    procedure Connect;    virtual;
+    procedure Disconnect; virtual;
+    procedure Abort;      virtual;
 
     function raw_command(const name : String;
                          params     : array of const) : string; virtual;
@@ -83,37 +86,47 @@ begin
 end;
 
 function SToLine : String; inline;
-begin
-  Result := ValueToLine(Ansistring(params[i].VAnsiString));
-end;
+begin Result := ValueToLine(params[i].VPChar); end;
+
+function SSToLine : String; inline;
+begin Result := ValueToLine(params[i].VString^); end;
+
+function CToLine : String; inline;
+begin Result := ValueToLine(params[i].VChar); end;
 
 function BToLine : String; inline;
-var s : string;
 begin
-  s := BoolToStr(params[i].VBoolean, FBoolTrue, FBoolFalse);
-  Result := ValueToLine(s);
+  Result := ValueToLine(BoolToStr(params[i].VBoolean, FBoolTrue, FBoolFalse));
 end;
 
 function IToLine : String; inline;
-begin
-  Result := ValueToLine(IntToStr(params[i].VInteger));
-end;
+begin Result := ValueToLine(IntToStr(params[i].VInteger)); end;
 
 function I64ToLine : String; inline;
-begin
-  Result := ValueToLine(IntToStr(params[i].VInt64^));
-end;
+begin Result := ValueToLine(IntToStr(params[i].VInt64^)); end;
+
+function QToLine : String; inline;
+begin Result := ValueToLine(IntToStr(params[i].VQWord^)); end;
+
+function CUToLine : String; inline;
+begin Result := ValueToLine(CurrToStr(params[i].VCurrency^)); end;
+
+function EToLine : String; inline;
+begin Result := ValueToLine(FloatToStr(params[i].VExtended^)); end;
 
 begin
   Result := '';
   for i := Low(Params) to High(Params) do
    begin
      case params[i].VType of
-       vtInteger    : Result := IToLine;
-       vtInt64      : Result := I64ToLine;
-       vtCurrency,
+       vtInteger    : Result := Result + IToLine;
+       vtInt64      : Result := Result + I64ToLine;
+       vtCurrency   : Result := Result + CUToLine;
+       vtExtended   : Result := Result + EToLine;
        vtBoolean    : Result := Result + BToLine;
-       vtString,
+       vtChar       : Result := Result + CToLine;
+       vtString     : Result := Result + SSToLine;
+       vtPChar,
        vtAnsiString : Result := Result + SToLine;
      end;
    end;
@@ -157,6 +170,16 @@ destructor TRedisIO.Destroy;
 begin
   FSock.Free;
   inherited Destroy;
+end;
+
+procedure TRedisIO.Connect;
+begin
+  DoOpenConnection;
+end;
+
+procedure TRedisIO.Disconnect;
+begin
+  FSock.CloseSocket;
 end;
 
 procedure TRedisIO.Abort;
