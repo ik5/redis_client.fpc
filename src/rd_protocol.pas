@@ -15,8 +15,6 @@ const
   CMD_PARAMS_CHAR   = '*';
   CMD_PARAMS_LENGTH = '$';
 
-
-
 // Should arrive from blcksock, but if not ...
 {$IF not defined(CR)}
   CR   = #13;
@@ -28,7 +26,16 @@ const
   CRLF = CR+LF;
 {$ENDIF}
 
+ ERROR_OK            = 0;
+ ERROR_NO_CONNECTION = 1;
+ ERROR_UKNOWN_PARAM  = 2;
+
 type
+
+  TIOBasicErrorEvent = procedure(Sender : TObject; var Handled : Boolean)
+                               of object;
+
+  ERedisException = class(Exception);
 
   { TRedisIO }
 
@@ -36,7 +43,9 @@ type
   private
     FBoolFalse : String;
     FBoolTrue  : String;
+    FError     : Longint;
     FLog       : TEventLog;
+    FOnError   : TIOBasicErrorEvent;
   protected
     FSock : TTCPBlockSocket;
     function ParamsToStr(params : array of const) : String; virtual;
@@ -55,6 +64,8 @@ type
 
     function raw_command(const name : String;
                          params     : array of const) : string; virtual;
+
+    property Error : Longint read FError;
   published
     property BoolFalse : String    read FBoolFalse write FBoolFalse;
     // The string for boolean true value
@@ -65,7 +76,12 @@ type
     property TargetHost;
     property TargetPort;
     property Timeout;
+
+    property OnError : TIOBasicErrorEvent read FOnError write FOnError;
   end;
+
+resourcestring
+ txtUnsupportedParam = 'Unsupported paremter type (%d) at index %d';
 
 implementation
 
@@ -121,7 +137,8 @@ function EToLine : String; inline;
 begin Result := ValueToLine(FloatToStr(params[i].VExtended^)); end;
 
 var
-  line : String;
+  line    : String;
+  Handled : Boolean;
 begin
   Result := '';
   for i := Low(Params) to High(Params) do
@@ -138,14 +155,25 @@ begin
        vtPChar,
        vtAnsiString : line := SToLine;
        else begin
-             line := '';
-             Debug('Got unsupported paremter type (%d) at index %d',
+             line    := '';
+             Handled := false;
+             FError  := ERROR_UKNOWN_PARAM;
+             Debug(txtUnsupportedParam,
                     [params[i].VType, i]);
+             if Assiged(FOnError) then
+              FOnError(self, Handled);
 
+             if not Handled then
+              begin
+                raise ERedisException.CreateFmt(txtUnsupportedParam,
+                    [params[i].VType, i]);
+              end;
             end;
        end; // case
      Result := Result + line;
    end;
+
+  FError := ERROR_OK;
 end;
 
 procedure TRedisIO.DoOpenConnection;
@@ -177,9 +205,11 @@ begin
   FTimeout    := DEFAULT_TIMEOUT;
   FBoolFalse  := 'false';
   FBoolTrue   := 'true';
-  FLog        := nil;
 
-  FSock := TTCPBlockSocket.Create;
+  FLog        := nil;
+  FError      := ERROR_OK;
+
+  FSock       := TTCPBlockSocket.Create;
 end;
 
 destructor TRedisIO.Destroy;
@@ -207,7 +237,12 @@ function TRedisIO.raw_command(const name: String;
   params: array of const): string;
 var
   line : string;
+  cmd  : string;
+  l    : integer;
 begin
+  l    := Length(params);
+  //line :=
+  if l
   Debug(ParamsToStr(params));
 end;
 
