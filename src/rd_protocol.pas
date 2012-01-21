@@ -46,6 +46,9 @@ const
  DEFAULT_PORT         = 6379;
  DEFAULT_TIMEOUT      = 60000; // A minute, I hope it's not too much time...
 
+ MAX_KEY_SIZE         = 1073741824; (* Number of bytes that the key length can
+                                       have. *)
+
  CMD_PARAMS_CHAR      = '*'; // Begining of a command to send
  CMD_PARAMS_LENGTH    = '$'; (* The length of each parameter and the command
                                 itself. *)
