@@ -29,13 +29,15 @@ const
  ERROR_OK            = 0;
  ERROR_NO_CONNECTION = 1;
  ERROR_UKNOWN_PARAM  = 2;
+ ERROR_EMPTY_COMMAND = 3;
 
 type
 
   TIOBasicErrorEvent = procedure(Sender : TObject; var Handled : Boolean)
                                of object;
 
-  ERedisException = class(Exception);
+  ERedisException   = class(Exception);
+  ERedisIOException = class(ERedisException);
 
   { TRedisIO }
 
@@ -62,8 +64,20 @@ type
     procedure Disconnect; virtual;
     procedure Abort;      virtual;
 
-    function raw_command(const name : String;
-                         params     : array of const) : string; virtual;
+    (* Generate a raw command to send.
+       Parameters:
+         command - the name of the command to use
+         params  - open array of const of the parameters for the command
+
+       Returns:
+         A string that is ready to be send
+
+       Exception:
+         This function does not handle any exception.
+         You should capture it by yourself.
+     *)
+    function raw_command(const command : String;
+                         params        : array of const) : string; virtual;
 
     property Error : Longint read FError;
   published
@@ -81,7 +95,8 @@ type
   end;
 
 resourcestring
- txtUnsupportedParam = 'Unsupported paremter type (%d) at index %d';
+ txtUnsupportedParam     = 'Unsupported paremter type (%d) at index %d';
+ txtEmptyCommandWasGiven = 'Empty Command was give';
 
 implementation
 
@@ -160,12 +175,13 @@ begin
              FError  := ERROR_UKNOWN_PARAM;
              Debug(txtUnsupportedParam,
                     [params[i].VType, i]);
-             if Assiged(FOnError) then
+
+             if Assigned(FOnError) then
               FOnError(self, Handled);
 
              if not Handled then
               begin
-                raise ERedisException.CreateFmt(txtUnsupportedParam,
+                raise ERedisIOException.CreateFmt(txtUnsupportedParam,
                     [params[i].VType, i]);
               end;
             end;
@@ -233,17 +249,48 @@ begin
   FSock.StopFlag := true;
 end;
 
-function TRedisIO.raw_command(const name: String;
+function TRedisIO.raw_command(const command : String;
   params: array of const): string;
 var
-  line : string;
-  cmd  : string;
-  l    : integer;
+  cmd     : string;
+  l       : integer;
+  Handled : Boolean;
 begin
-  l    := Length(params);
-  //line :=
-  if l
-  Debug(ParamsToStr(params));
+  if command = '' then
+   begin
+     Debug(txtEmptyCommandWasGiven);
+     Handled := false;
+     FError  := ERROR_EMPTY_COMMAND;
+     if Assigned(FOnError) then
+      FOnError(self, Handled);
+
+     if not Handled then
+      raise ERedisIOException.Create(txtEmptyCommandWasGiven)
+     else begin
+       Result := '';
+       exit;
+     end;
+   end;
+
+  l      := Length(params);
+  Debug('Have #%d params', [l]);
+  Result := Format('%s%d%s' , [CMD_PARAMS_CHAR, l+1, CRLF]);
+  Result := Result + Format('%s%d%s%s%s', [CMD_PARAMS_LENGTH, Length(command),
+                                       CRLF, command, CRLF]);
+  Debug('Command : %s', [Result]);
+
+  if l > 0 then
+   begin
+    cmd := ParamsToStr(params);
+    Debug('Have parametes: %s', [cmd]);
+    Result := Result + cmd;
+   end
+  else begin
+    Debug('No parameters');
+  end;
+
+  Debug('Full command : [%s]', [Result]);
+  FError := ERROR_OK;
 end;
 
 end.
