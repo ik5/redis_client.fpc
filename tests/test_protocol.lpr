@@ -15,7 +15,7 @@ begin
   log                  := TEventLog.Create(nil);
   Log.FileName         := ExtractFilePath(ParamStr(0)) + 'debug.log';
   Log.LogType          := ltFile;
-  Log.AppendContent    := true;
+  Log.AppendContent    := false;
   Log.DefaultEventType := etDebug;
   Log.Active           := true;
   redis.Log            := Log;
