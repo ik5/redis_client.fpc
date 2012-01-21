@@ -14,6 +14,8 @@ Files
   - rd_protocol.pas - Implementing the protocol itself:
                       http://redis.io/topics/protocol
 
+  - rd_commands.pas - Implementing the commands supported by the database
+
 
 Dependencies 
 ============
