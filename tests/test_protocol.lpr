@@ -20,8 +20,7 @@ begin
   Log.Active           := true;
   redis.Log            := Log;
   redis.Connect;
-  redis.raw_send_command('SET',
-         ['Hello World', 1, 3.14, Currency(0.5), true, false]);
+  redis.raw_send_command('PING', []);
   redis.Disconnect;
   redis.Free;
   log.Free;
