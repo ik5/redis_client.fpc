@@ -75,8 +75,7 @@ const
 
 type
 
-  TIOBasicErrorEvent = procedure(Sender : TObject; var Handled : Boolean)
-                               of object;
+  TIOErrorEvent = procedure(Sender : TObject; var Handled : Boolean) of object;
 
   ERedisException   = class(Exception);
   ERedisIOException = class(ERedisException);
@@ -89,7 +88,7 @@ type
     FBoolTrue  : String;
     FError     : Longint;
     FLog       : TEventLog;
-    FOnError   : TIOBasicErrorEvent;
+    FOnError   : TIOErrorEvent;
   protected
     FSock : TTCPBlockSocket;
     function ParamsToStr(params : array of const) : String; virtual;
@@ -118,8 +117,8 @@ type
          This function does not handle any exception.
          You should capture it by yourself.
      *)
-    function raw_command(const command : String;
-                         params        : array of const) : string; virtual;
+    function build_raw_command(const command : String;
+                                     params  : array of const) : string; virtual;
 
     property Error : Longint read FError;
   published
@@ -133,7 +132,7 @@ type
     property TargetPort;
     property Timeout;
 
-    property OnError : TIOBasicErrorEvent read FOnError write FOnError;
+    property OnError : TIOErrorEvent read FOnError write FOnError;
   end;
 
 resourcestring
@@ -291,7 +290,7 @@ begin
   FSock.StopFlag := true;
 end;
 
-function TRedisIO.raw_command(const command : String;
+function TRedisIO.build_raw_command(const command : String;
   params: array of const): string;
 var
   cmd     : string;
