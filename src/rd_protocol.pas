@@ -75,14 +75,20 @@ function TRedisIO.ParamsToStr(params: array of const): String;
 var i : integer;
 
 const
-  line = CMD_PARAMS_LENGTH + '%d' + CRLF + '%s' + CRLF;
+  cCOMMAND = CMD_PARAMS_LENGTH + '%d' + CRLF + '%s' + CRLF;
 
 function ValueToLine(AValue : String) : String; inline;
+var
+  l : integer;
 begin
+  l := Length(AValue);
+
+  Debug('Have value of [%s], length : %d', [AValue, l]);
+
   if AValue = '' then
-   Result := Format(line, [-1, ''])
+   Result := Format(cCOMMAND, [-1, ''])
   else
-   Result := Format(line, [Length(AValue), AValue]);
+   Result := Format(cCOMMAND, [l, AValue]);
 end;
 
 function SToLine : String; inline;
@@ -114,21 +120,31 @@ begin Result := ValueToLine(CurrToStr(params[i].VCurrency^)); end;
 function EToLine : String; inline;
 begin Result := ValueToLine(FloatToStr(params[i].VExtended^)); end;
 
+var
+  line : String;
 begin
   Result := '';
   for i := Low(Params) to High(Params) do
    begin
+     Debug('On index %d, with type %d', [i, params[i].VType]);
      case params[i].VType of
-       vtInteger    : Result := Result + IToLine;
-       vtInt64      : Result := Result + I64ToLine;
-       vtCurrency   : Result := Result + CUToLine;
-       vtExtended   : Result := Result + EToLine;
-       vtBoolean    : Result := Result + BToLine;
-       vtChar       : Result := Result + CToLine;
-       vtString     : Result := Result + SSToLine;
+       vtInteger    : Line := IToLine;
+       vtInt64      : line := I64ToLine;
+       vtCurrency   : line := CUToLine;
+       vtExtended   : line := EToLine;
+       vtBoolean    : line := BToLine;
+       vtChar       : line := CToLine;
+       vtString     : line := SSToLine;
        vtPChar,
-       vtAnsiString : Result := Result + SToLine;
-     end;
+       vtAnsiString : line := SToLine;
+       else begin
+             line := '';
+             Debug('Got unsupported paremter type (%d) at index %d',
+                    [params[i].VType, i]);
+
+            end;
+       end; // case
+     Result := Result + line;
    end;
 end;
 
