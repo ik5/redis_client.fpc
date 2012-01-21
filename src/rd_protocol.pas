@@ -86,16 +86,18 @@ type
   { TRedisIO }
 
   TRedisIO = class(TSynaClient)
-  private
+  protected
     FBoolFalse : String;
     FBoolTrue  : String;
     FError     : Longint;
     FLog       : TEventLog;
     FOnError   : TIOErrorEvent;
-  protected
+
     FSock : TTCPBlockSocket;
     function ParamsToStr(params : array of const) : String; virtual;
 
+    // Try to detect if the socket is open for connection
+    function IsConnected : Boolean;
     procedure DoOpenConnection;
   public
     procedure Debug(const s : string); virtual;
@@ -123,7 +125,25 @@ type
     function build_raw_command(const command : String;
                                      params  : array of const) : string; virtual;
 
-    property Error : Longint read FError;
+    (* Send a command using the socet and return a raw answer
+       Parameters:
+         command - the name of the command to use
+         params  - open array of const of the parameters for the command
+
+       Returns:
+         A raw string that was given by the server
+     *)
+    function raw_send_command(const command : String;
+                                    params  : array of const) : string; virtual;
+
+    // Try to understand if the socket is open for connection
+    property Connected : Boolean         read IsConnected;
+
+    // See what is the last error status of any of the commands
+    property Error     : Longint         read FError;
+
+    // Get the socket that is used for this class
+    property Socket    : TTCPBlockSocket read FSock;
   published
     property BoolFalse : String    read FBoolFalse write FBoolFalse;
     // The string for boolean true value
@@ -145,6 +165,13 @@ resourcestring
 implementation
 
 { TRedisIO }
+
+function TRedisIO.IsConnected : Boolean;
+begin
+  Result := FSock.Socket = NOT(0);
+  if Result then
+     Result := FSock.CanRead(0) and FSock.CanWrite(0);
+end;
 
 function TRedisIO.ParamsToStr(params: array of const): String;
 var i : integer;
@@ -238,13 +265,8 @@ end;
 
 procedure TRedisIO.DoOpenConnection;
 begin
-  if FSock.Socket = NOT(0) then
+  if not IsConnected then
    FSock.Connect(FTargetHost, FTargetPort)
-  else
-   begin
-     if not FSock.CanWrite(0) then
-       FSock.Connect(FTargetHost, FTargetPort);
-   end;
 end;
 
 procedure TRedisIO.Debug(const s: string);
@@ -335,6 +357,12 @@ begin
 
   Debug('Full command : [%s]', [Result]);
   FError := ERROR_OK;
+end;
+
+function TRedisIO.raw_send_command(const command: String;
+  params: array of const): string;
+begin
+
 end;
 
 end.
