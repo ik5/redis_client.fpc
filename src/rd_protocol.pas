@@ -94,18 +94,21 @@ type
 
   TRedisIO = class(TSynaClient)
   protected
-    FBoolFalse : String;
-    FBoolTrue  : String;
-    FError     : Longint;
-    FLog       : TEventLog;
-    FOnError   : TIOErrorEvent;
+    FBoolFalse    : String;
+    FBoolTrue     : String;
+    FError        : Longint;
+    FLog          : TEventLog;
+    FOnError      : TIOErrorEvent;
+    FAfterConnect : THookAfterConnect;
+    FSock         : TTCPBlockSocket;
 
-    FSock : TTCPBlockSocket;
     function ParamsToStr(params : array of const) : String; virtual;
 
     // Try to detect if the socket is open for connection
     function IsConnected : Boolean;
     procedure DoOpenConnection;
+
+    procedure AfterConnectEvent(Sender : TObject);
   public
     procedure lDebug(const s : string); virtual;
     procedure lDebug(const s : string; params : array of const); virtual;
@@ -179,7 +182,10 @@ type
     property TargetPort;
     property Timeout;
 
-    property OnError : TIOErrorEvent read FOnError write FOnError;
+    property OnError        : TIOErrorEvent      read FOnError
+                                                write FOnError;
+    property OnAfterConnect : THookAfterConnect  read FAfterConnect
+                                                write FAfterConnect;
   end;
 
 resourcestring
@@ -317,6 +323,12 @@ begin
 
 end;
 
+procedure TRedisIO.AfterConnectEvent(Sender: TObject);
+begin
+  if Assigned(FAfterConnect) then
+   FAfterConnect(Sender);
+end;
+
 procedure TRedisIO.lDebug(const s: string);
 begin
   if Assigned(FLog) then
@@ -343,16 +355,18 @@ end;
 
 constructor TRedisIO.Create;
 begin
-  FTargetHost := DEFUALT_ADDRESS;
-  FTargetPort := IntToStr(DEFAULT_PORT);
-  FTimeout    := DEFAULT_TIMEOUT;
-  FBoolFalse  := 'false';
-  FBoolTrue   := 'true';
+  FTargetHost          := DEFUALT_ADDRESS;
+  FTargetPort          := IntToStr(DEFAULT_PORT);
+  FTimeout             := DEFAULT_TIMEOUT;
+  FBoolFalse           := 'false';
+  FBoolTrue            := 'true';
 
-  FLog        := nil;
-  FError      := ERROR_OK;
+  FLog                 := nil;
+  FError               := ERROR_OK;
 
-  FSock       := TTCPBlockSocket.Create;
+  FSock                := TTCPBlockSocket.Create;
+  FSock.OnAfterConnect := {$IFDEF FPC}@{$ENDIF}
+                           AfterConnectEvent;
 end;
 
 destructor TRedisIO.Destroy;
