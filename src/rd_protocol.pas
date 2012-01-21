@@ -161,6 +161,7 @@ type
 resourcestring
  txtUnsupportedParam     = 'Unsupported paremter type (%d) at index %d';
  txtEmptyCommandWasGiven = 'Empty Command was give';
+ txtUnableToConnect      = 'Unable to connect to %s:%s';
 
 implementation
 
@@ -264,9 +265,28 @@ begin
 end;
 
 procedure TRedisIO.DoOpenConnection;
+var Handled : Boolean;
 begin
   if not IsConnected then
-   FSock.Connect(FTargetHost, FTargetPort)
+   begin
+     FSock.Connect(FTargetHost, FTargetPort);
+     FError := ERROR_OK;
+     if FSock.LastError <> 0 then
+      begin
+       Handled := false;
+       FError  := ERROR_NO_CONNECTION;
+       Debug(txtUnableToConnect, [FTargetHost, FTargetPort]);
+       if Assigned(FOnError) then
+        FOnError(self, Handled);
+
+       if not Handled then
+        begin
+         Raise ERedisIOException.CreateFmt(txtUnableToConnect,
+               [FTargetHost, FTargetPort]);
+        end;
+     end;
+   end;
+
 end;
 
 procedure TRedisIO.Debug(const s: string);
@@ -361,8 +381,12 @@ end;
 
 function TRedisIO.raw_send_command(const command: String;
   params: array of const): string;
+var cmd : string;
 begin
-
+ cmd := build_raw_command(command, params);
+ Debug ('Going to send the following command: [%s]', [cmd]);
+ FSock.SendString(cmd);
+ Debug('Answer from the command : [%s]', [Result]);
 end;
 
 end.

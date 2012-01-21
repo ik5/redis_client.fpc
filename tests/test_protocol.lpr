@@ -19,7 +19,8 @@ begin
   Log.DefaultEventType := etDebug;
   Log.Active           := true;
   redis.Log            := Log;
-  redis.build_raw_command('SET', ['Hello World', 1, 3.14, Currency(0.5), true, false]);
+  redis.raw_send_command('SET',
+         ['Hello World', 1, 3.14, Currency(0.5), true, false]);
   redis.Free;
   log.Free;
 end.
