@@ -45,6 +45,7 @@ uses
 const
  DEFAULT_PORT         = 6379;
  DEFAULT_TIMEOUT      = 60000; // A minute, I hope it's not too much time...
+ DEFUALT_ADDRESS      = '127.0.0.1'; // Default address to send data
 
  MAX_KEY_SIZE         = 1073741824; (* 1 Gigabyte - The Number of bytes that
                                                     a key length can have. *)
@@ -327,7 +328,7 @@ end;
 
 constructor TRedisIO.Create;
 begin
-  FTargetHost := '127.0.0.1';
+  FTargetHost := DEFUALT_ADDRESS;
   FTargetPort := IntToStr(DEFAULT_PORT);
   FTimeout    := DEFAULT_TIMEOUT;
   FBoolFalse  := 'false';
