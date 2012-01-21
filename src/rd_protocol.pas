@@ -134,6 +134,18 @@ type
     function build_raw_command(const command : String;
                                      params  : array of const) : string; virtual;
 
+    (* Sends a string and get answer
+       Parameters:
+         s - The string to send
+
+       Returns:
+         The answer of the server
+
+       Exceptions:
+         Raises exceptions on problem sending and getting answer
+     *)
+    function raw_send_command(const s : string) : string; virtual;
+
     (* Send a command using the socet and return a raw answer
        Parameters:
          command - the name of the command to use
@@ -141,9 +153,12 @@ type
 
        Returns:
          A raw string that was given by the server
+
+       Exceptions:
+         Does not capture the exception raised
      *)
-    function raw_send_command(const command : String;
-                                    params  : array of const) : string; virtual;
+    function send_command(const command : String;
+                                params  : array of const) : string; virtual;
 
     // Try to understand if the socket is open for connection
     property Connected : Boolean         read IsConnected;
@@ -406,14 +421,37 @@ begin
   FError := ERROR_OK;
 end;
 
-function TRedisIO.raw_send_command(const command: String;
+function TRedisIO.send_command(const command: String;
   params: array of const): string;
-var cmd : string;
+var cmd     : string;
+    Handled : Boolean;
+begin
+ if command = '' then
+   begin
+     lError(txtEmptyCommandWasGiven);
+     Handled := false;
+     FError  := ERROR_EMPTY_COMMAND;
+     if Assigned(FOnError) then
+      FOnError(self, Handled);
+
+     if not Handled then
+      raise ERedisIOException.Create(txtEmptyCommandWasGiven)
+     else begin
+       Result := '';
+       exit;
+     end;
+   end;
+
+ cmd    := build_raw_command(command, params);
+ Result := raw_send_command(cmd);
+end;
+
+function TRedisIO.raw_send_command(const s : string) : String;
+var
   Handled : Boolean;
 begin
- cmd := build_raw_command(command, params);
- lDebug('Going to send the following command: [%s]', [cmd]);
- FSock.SendString(cmd);
+ lDebug('Going to send the following command: [%s]', [s]);
+ FSock.SendString(s);
  FError := ERROR_OK;
  if FSock.LastError <> 0 then
   begin

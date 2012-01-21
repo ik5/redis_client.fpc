@@ -20,7 +20,7 @@ begin
   Log.Active           := true;
   redis.Log            := Log;
   redis.Connect;
-  redis.raw_send_command('PING', []);
+  redis.send_command('PING', []);
   redis.Disconnect;
   redis.Free;
   log.Free;
