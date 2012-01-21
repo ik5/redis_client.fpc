@@ -40,6 +40,8 @@ type
   protected
     FSock : TTCPBlockSocket;
     function ParamsToStr(params : array of const) : String; virtual;
+
+    procedure DoOpenConnection;
   public
     procedure Debug(const s : string); virtual;
     procedure Debug(const s : string; params : array of const); virtual;
@@ -54,7 +56,7 @@ type
     property BoolFalse : String    read FBoolFalse write FBoolFalse;
     // The string for boolean true value
     property BoolTrue  : String    read FBoolTrue  write FBoolTrue;
-
+    // Allow to store log (mostly for debug purpose)
     property Log       : TEventLog read FLog       write FLog;
 
     property TargetHost;
@@ -117,6 +119,17 @@ begin
    end;
 end;
 
+procedure TRedisIO.DoOpenConnection;
+begin
+  if FSock.Socket = NOT(0) then
+   FSock.Connect(FTargetHost, FTargetPort)
+  else
+   begin
+     if not FSock.CanWrite(0) then
+       FSock.Connect(FTargetHost, FTargetPort);
+   end;
+end;
+
 procedure TRedisIO.Debug(const s: string);
 begin
   if Assigned(FLog) then
@@ -125,7 +138,8 @@ end;
 
 procedure TRedisIO.Debug(const s: string; params: array of const);
 begin
-  Debug(Format(s, params));
+  if Assigned(FLog) then
+   FLog.Debug(s, params);
 end;
 
 constructor TRedisIO.Create;
