@@ -107,6 +107,16 @@ type
 
   end;
 
+  { TRedisCommands }
+
+  TRedisCommands = class(TObject)
+  protected
+    FIO : TRedisIO;
+
+  public
+    constructor Create(AIO : TRedisIO); virtual;
+  end;
+
   { TRadisDB }
 
   TRadisDB = class(TObject)
@@ -127,6 +137,16 @@ resourcestring
   txtMissingIO = 'No RedisIO object was provided';
 
 implementation
+
+{ TRedisCommands }
+
+constructor TRedisCommands.Create(AIO: TRedisIO);
+begin
+  if Assigned(AIO) then
+    FIO := AIO
+  else
+    raise ERedisException.Create(txtMissingIO);
+end;
 
 { TRedisSortedSet }
 
