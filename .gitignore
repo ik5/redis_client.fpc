@@ -6,3 +6,4 @@
 */*res
 */*lps
 tests/test_protocol
+tests/debug.log
