@@ -53,8 +53,9 @@ const
  CMD_PARAMS_LENGTH    = '$'; (* The length of each parameter and the command
                                 itself. *)
 
- RPLY_SINGLE_CHAR     = '+'; // Returned a single (e.g. "+OK\r\n")
- RPLY_ERROR_CHAR      = '-'; // Returned an error (e.g. "-Some Exception\r\n")
+ RPLY_SINGLE_CHAR     = '+'; // Returned a single (e.g. "+OK")
+ RPLY_ERROR_CHAR      = '-'; (* Returned an error
+                    (e.g. "-ERR wrong number of arguments for 'set' command") *)
  RPLY_INT_CHAR        = ':'; // Return a number (e.g. ":100\r\n")
  RPLY_BULK_CHAR       = '$'; // Return a bulk value (e.g. "$6\r\nfoobar\r\n")
  RPLY_MULTI_BULK_CHAR = '*'; (* Return multiple bulk value
@@ -71,17 +72,22 @@ const
   CRLF = CR+LF;
 {$ENDIF}
 
- ERROR_OK            = 0;
- ERROR_NO_CONNECTION = 1;
- ERROR_UKNOWN_PARAM  = 2;
- ERROR_EMPTY_COMMAND = 3;
+ ERROR_OK                  = 0; // No Error
+ ERROR_NO_CONNECTION       = 1; // Unable to connect to socket
+ ERROR_UKNOWN_PARAM        = 2; // Parameteer type is unknown
+ ERROR_EMPTY_COMMAND       = 3; // The given command is empty
+ ERROR_CANNOT_SEND_COMMAND = 4; // Socket error while sending command
+ ERROR_CANNOT_READ_ANSWER  = 5; // Socket error while reading command
 
 type
 
   TIOErrorEvent = procedure(Sender : TObject; var Handled : Boolean) of object;
 
-  ERedisException   = class(Exception);
-  ERedisIOException = class(ERedisException);
+  ERedisException       = class(Exception);
+  ERedisIOException     = class(ERedisException);
+  (* If this type of exception is raised, you should read the socket error for
+      better understanding of the problem *)
+  ERedisSocketException = class(ERedisIOException);
 
   { TRedisIO }
 
@@ -100,8 +106,10 @@ type
     function IsConnected : Boolean;
     procedure DoOpenConnection;
   public
-    procedure Debug(const s : string); virtual;
-    procedure Debug(const s : string; params : array of const); virtual;
+    procedure lDebug(const s : string); virtual;
+    procedure lDebug(const s : string; params : array of const); virtual;
+    procedure lError(const s : string); virtual;
+    procedure lError(const s : string; params : array of const); virtual;
 
     constructor Create; virtual;
     destructor Destroy; override;
@@ -162,6 +170,8 @@ resourcestring
  txtUnsupportedParam     = 'Unsupported paremter type (%d) at index %d';
  txtEmptyCommandWasGiven = 'Empty Command was give';
  txtUnableToConnect      = 'Unable to connect to %s:%s';
+ txtCannotSendCommand    = 'Unable to send command';
+ txtCannotReadAnswer     = 'Unable to read answer';
 
 implementation
 
@@ -186,7 +196,7 @@ var
 begin
   l := Length(AValue);
 
-  Debug('Have value of [%s], length : %d', [AValue, l]);
+  lDebug('Have value of [%s], length : %d', [AValue, l]);
 
   if AValue = '' then
    Result := Format(cCOMMAND, [-1, ''])
@@ -230,7 +240,7 @@ begin
   Result := '';
   for i := Low(Params) to High(Params) do
    begin
-     Debug('On index %d, with type %d', [i, params[i].VType]);
+     lDebug('On index %d, with type %d', [i, params[i].VType]);
      case params[i].VType of
        vtInteger    : Line := IToLine;
        vtInt64      : line := I64ToLine;
@@ -245,7 +255,7 @@ begin
              line    := '';
              Handled := false;
              FError  := ERROR_UKNOWN_PARAM;
-             Debug(txtUnsupportedParam,
+             lError(txtUnsupportedParam,
                     [params[i].VType, i]);
 
              if Assigned(FOnError) then
@@ -269,19 +279,21 @@ var Handled : Boolean;
 begin
   if not IsConnected then
    begin
+     FSock.Bind(FIPInterface, cAnyPort);
+
      FSock.Connect(FTargetHost, FTargetPort);
      FError := ERROR_OK;
      if FSock.LastError <> 0 then
       begin
        Handled := false;
        FError  := ERROR_NO_CONNECTION;
-       Debug(txtUnableToConnect, [FTargetHost, FTargetPort]);
+       lError(txtUnableToConnect, [FTargetHost, FTargetPort]);
        if Assigned(FOnError) then
         FOnError(self, Handled);
 
        if not Handled then
         begin
-         Raise ERedisIOException.CreateFmt(txtUnableToConnect,
+         Raise ERedisSocketException.CreateFmt(txtUnableToConnect,
                [FTargetHost, FTargetPort]);
         end;
      end;
@@ -289,20 +301,33 @@ begin
 
 end;
 
-procedure TRedisIO.Debug(const s: string);
+procedure TRedisIO.lDebug(const s: string);
 begin
   if Assigned(FLog) then
    FLog.Debug(s);
 end;
 
-procedure TRedisIO.Debug(const s: string; params: array of const);
+procedure TRedisIO.lDebug(const s: string; params: array of const);
 begin
   if Assigned(FLog) then
    FLog.Debug(s, params);
 end;
 
+procedure TRedisIO.lError(const s: string);
+begin
+  if Assigned(FLog) then
+   FLog.Error(s);
+end;
+
+procedure TRedisIO.lError(const s: string; params: array of const);
+begin
+  if Assigned(FLog) then
+   FLog.Error(s, params);
+end;
+
 constructor TRedisIO.Create;
 begin
+  FTargetHost := '127.0.0.1';
   FTargetPort := IntToStr(DEFAULT_PORT);
   FTimeout    := DEFAULT_TIMEOUT;
   FBoolFalse  := 'false';
@@ -322,6 +347,7 @@ end;
 
 procedure TRedisIO.Connect;
 begin
+  Disconnect;
   DoOpenConnection;
 end;
 
@@ -344,7 +370,7 @@ var
 begin
   if command = '' then
    begin
-     Debug(txtEmptyCommandWasGiven);
+     lError(txtEmptyCommandWasGiven);
      Handled := false;
      FError  := ERROR_EMPTY_COMMAND;
      if Assigned(FOnError) then
@@ -359,34 +385,67 @@ begin
    end;
 
   l      := Length(params);
-  Debug('Have #%d params', [l]);
+  lDebug('Have #%d params', [l]);
   Result := Format('%s%d%s' , [CMD_PARAMS_CHAR, l+1, CRLF]);
   Result := Result + Format('%s%d%s%s%s', [CMD_PARAMS_LENGTH, Length(command),
                                        CRLF, command, CRLF]);
-  Debug('Command : %s', [Result]);
+  lDebug('Command : %s', [Result]);
 
   if l > 0 then
    begin
     cmd := ParamsToStr(params);
-    Debug('Have parametes: %s', [cmd]);
+    lDebug('Have parametes: %s', [cmd]);
     Result := Result + cmd;
    end
   else begin
-    Debug('No parameters');
+    lDebug('No parameters');
   end;
 
-  Debug('Full command : [%s]', [Result]);
+  lDebug('Full command : [%s]', [Result]);
   FError := ERROR_OK;
 end;
 
 function TRedisIO.raw_send_command(const command: String;
   params: array of const): string;
 var cmd : string;
+  Handled : Boolean;
 begin
  cmd := build_raw_command(command, params);
- Debug ('Going to send the following command: [%s]', [cmd]);
+ lDebug('Going to send the following command: [%s]', [cmd]);
  FSock.SendString(cmd);
- Debug('Answer from the command : [%s]', [Result]);
+ FError := ERROR_OK;
+ if FSock.LastError <> 0 then
+  begin
+    lError(txtCannotSendCommand);
+    lError('Socket Error #%d : %s', [FSock.LastError, FSock.LastErrorDesc]);
+    Handled := false;
+    FError  := ERROR_CANNOT_SEND_COMMAND;
+    if Assigned(FOnError) then
+     FOnError(self, Handled);
+
+    if not Handled then
+     raise ERedisSocketException.Create(txtCannotSendCommand);
+
+    exit;
+  end;
+
+ Result := FSock.RecvString(FTimeout);
+
+ if FSock.LastError <> 0 then
+  begin
+    lError(txtCannotReadAnswer);
+    lError('Socket Error #%d : %s', [FSock.LastError, FSock.LastErrorDesc]);
+    Handled := False;
+    FError  := ERROR_CANNOT_READ_ANSWER;
+    if Assigned(FOnError) then
+     FOnError(self, Handled);
+
+    if not Handled then
+     raise ERedisSocketException.Create(txtCannotReadAnswer);
+
+    Exit;
+  end;
+ lDebug('Answer from the command : [%s]', [Result]);
 end;
 
 end.
