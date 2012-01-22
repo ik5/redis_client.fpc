@@ -43,6 +43,15 @@ type
                       ratNumeric,   ratBulk,
                       ratMultiBulk, ratUnknown);
 
+  // Some foreword stuff
+
+  TRedisReturnType          = class(TPersistent);
+  TRedisStatusReturnType    = class(TRedisReturnType);
+  TRedisErrorReturnType     = class(TRedisReturnType);
+  TRedisNumericReturnType   = class(TRedisReturnType);
+  TRedisBulkReturnType      = class(TRedisReturnType);
+  TRedisMultiBulkReturnType = class(TRedisReturnType);
+
   { TRedisReturnType }
 
   (*
@@ -51,9 +60,10 @@ type
 
     This also what will be returned as nil !
   *)
-  TRedisReturnType = class
+  TRedisReturnType = class(TPersistent)
   public
     class function ReturnType : TRedisAnswerType; virtual;
+    class function IsNill : Boolean; virtual;
   end;
 
   { TRedisStatusReturnType }
@@ -61,6 +71,7 @@ type
   TRedisStatusReturnType = class(TRedisReturnType)
   public
     class function ReturnType : TRedisAnswerType; override;
+    class function IsNill : Boolean; override;
   end;
 
   { TRedisErrorReturnType }
@@ -68,6 +79,7 @@ type
   TRedisErrorReturnType = class(TRedisReturnType)
   public
     class function ReturnType : TRedisAnswerType; override;
+    class function IsNill : Boolean; override;
   end;
 
   { TRedisNumericReturnType }
@@ -75,6 +87,7 @@ type
   TRedisNumericReturnType = class(TRedisReturnType)
   public
     class function ReturnType : TRedisAnswerType; override;
+    class function IsNill : Boolean; override;
   end;
 
   { TRedisBulkReturnType }
@@ -82,20 +95,25 @@ type
   TRedisBulkReturnType = class(TRedisReturnType)
   public
     class function ReturnType : TRedisAnswerType; override;
+    class function IsNill : Boolean; override;
   end;
 
   { TRedisMultiBulkReturnType }
 
   TRedisMultiBulkReturnType = class(TRedisReturnType)
+  protected
+    type
+      TMultiBulkList = array of TRedisReturnType;
   public
     class function ReturnType : TRedisAnswerType; override;
+    class function IsNill : Boolean; override;
   end;
 
   { TRedisParser }
 
   TRedisParser = class(TObject)
   public
-
+    function GetAnswerType(const s : string) : TRedisAnswerType;
   end;
 
   { TRedisCommands }
@@ -128,11 +146,35 @@ resourcestring
 
 implementation
 
+{ TRedisParser }
+
+function TRedisParser.GetAnswerType(const s: string): TRedisAnswerType;
+var
+  c : char;
+begin
+  if s = '' then Exit(ratUnknown);
+
+  c := copy(s, 1,1)[1];
+  case c of
+    RPLY_SINGLE_CHAR     : Result := ratStatus;
+    RPLY_ERROR_CHAR      : Result := ratError;
+    RPLY_BULK_CHAR       : Result := ratBulk;
+    RPLY_MULTI_BULK_CHAR : Result := ratMultiBulk;
+    RPLY_INT_CHAR        : Result := ratNumeric;
+    else Result := ratUnknown;
+  end;
+end;
+
 { TRedisBulkReturnType }
 
 class function TRedisBulkReturnType.ReturnType: TRedisAnswerType;
 begin
   Result := ratBulk;
+end;
+
+class function TRedisBulkReturnType.IsNill: Boolean;
+begin
+  Result := False;
 end;
 
 { TRedisNumericReturnType }
@@ -142,11 +184,21 @@ begin
   Result := ratNumeric;
 end;
 
+class function TRedisNumericReturnType.IsNill: Boolean;
+begin
+  Result := False;
+end;
+
 { TRedisErrorReturnType }
 
 class function TRedisErrorReturnType.ReturnType: TRedisAnswerType;
 begin
   Result := ratError;
+end;
+
+class function TRedisErrorReturnType.IsNill: Boolean;
+begin
+  Result := False;
 end;
 
 { TRedisStatusReturnType }
@@ -156,6 +208,11 @@ begin
   Result := ratStatus;
 end;
 
+class function TRedisStatusReturnType.IsNill: Boolean;
+begin
+  Result := False;
+end;
+
 { TRedisMultiBulkReturnType }
 
 class function TRedisMultiBulkReturnType.ReturnType: TRedisAnswerType;
@@ -163,11 +220,21 @@ begin
   Result := ratMultiBulk;
 end;
 
+class function TRedisMultiBulkReturnType.IsNill: Boolean;
+begin
+  Result := False;
+end;
+
 { TRedisReturnType }
 
 class function TRedisReturnType.ReturnType: TRedisAnswerType;
 begin
   Result := ratUnknown;
+end;
+
+class function TRedisReturnType.IsNill: Boolean;
+begin
+  Result := true;
 end;
 
 { TRedisCommands }
