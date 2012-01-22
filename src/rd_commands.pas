@@ -43,6 +43,54 @@ type
                       ratNumeric,   ratBulk,
                       ratMultiBulk, ratUnknown);
 
+  { TRedisReturnType }
+
+  (*
+    We are not a dynamic language, we must better understand what we return
+    So This is an abstract class for return types.
+
+    This also what will be returned as nil !
+  *)
+  TRedisReturnType = class
+  public
+    class function ReturnType : TRedisAnswerType; virtual;
+  end;
+
+  { TRedisStatusReturnType }
+
+  TRedisStatusReturnType = class(TRedisReturnType)
+  public
+    class function ReturnType : TRedisAnswerType; override;
+  end;
+
+  { TRedisErrorReturnType }
+
+  TRedisErrorReturnType = class(TRedisReturnType)
+  public
+    class function ReturnType : TRedisAnswerType; override;
+  end;
+
+  { TRedisNumericReturnType }
+
+  TRedisNumericReturnType = class(TRedisReturnType)
+  public
+    class function ReturnType : TRedisAnswerType; override;
+  end;
+
+  { TRedisBulkReturnType }
+
+  TRedisBulkReturnType = class(TRedisReturnType)
+  public
+    class function ReturnType : TRedisAnswerType; override;
+  end;
+
+  { TRedisMultiBulkReturnType }
+
+  TRedisMultiBulkReturnType = class(TRedisReturnType)
+  public
+    class function ReturnType : TRedisAnswerType; override;
+  end;
+
   { TRedisParser }
 
   TRedisParser = class(TObject)
@@ -79,6 +127,48 @@ resourcestring
   txtMissingIO = 'No RedisIO object was provided';
 
 implementation
+
+{ TRedisBulkReturnType }
+
+class function TRedisBulkReturnType.ReturnType: TRedisAnswerType;
+begin
+  Result := ratBulk;
+end;
+
+{ TRedisNumericReturnType }
+
+class function TRedisNumericReturnType.ReturnType: TRedisAnswerType;
+begin
+  Result := ratNumeric;
+end;
+
+{ TRedisErrorReturnType }
+
+class function TRedisErrorReturnType.ReturnType: TRedisAnswerType;
+begin
+  Result := ratError;
+end;
+
+{ TRedisStatusReturnType }
+
+class function TRedisStatusReturnType.ReturnType: TRedisAnswerType;
+begin
+  Result := ratStatus;
+end;
+
+{ TRedisMultiBulkReturnType }
+
+class function TRedisMultiBulkReturnType.ReturnType: TRedisAnswerType;
+begin
+  Result := ratMultiBulk;
+end;
+
+{ TRedisReturnType }
+
+class function TRedisReturnType.ReturnType: TRedisAnswerType;
+begin
+  Result := ratUnknown;
+end;
 
 { TRedisCommands }
 
