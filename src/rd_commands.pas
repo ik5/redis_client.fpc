@@ -39,6 +39,10 @@ uses
   Classes, SysUtils, rd_protocol, blcksock;
 
 type
+  TRedisAnswerType = (ratStatus,    ratError,
+                      ratNumeric,   ratBulk,
+                      ratMultiBulk, ratUnknown);
+
   // http://redis.io/topics/data-types <- Implemeting data types
   TRedisTypes = (rtNull,      // Empty Value
                  rtString,    // String type -> Default for Redis
@@ -128,7 +132,6 @@ type
     constructor Create(AIO : TRedisIO); virtual;
 
     property Socket : TTCPBlockSocket read GetSocket;
-
   published
 
   end;
