@@ -43,67 +43,6 @@ type
                       ratNumeric,   ratBulk,
                       ratMultiBulk, ratUnknown);
 
-  // http://redis.io/topics/data-types <- Implemeting data types
-  TRedisTypes = (rtNull,      // Empty Value
-                 rtString,    // String type -> Default for Redis
-                 rtList,      // List of strings
-                 rtSet,       // Unordered collection of Strings
-                 rtHash,      // map between string fields and string values
-                 rtSortedSet, // Ordered collection of Strings
-                 rtUnknown    // Unknown data type -> not good idea to use
-                );
-
-  { TRedisDataType }
-
-  TRedisDataType = class(TPersistent)
-  public
-    class function DataType : TRedisTypes; virtual;
-  end;
-
-  { TRedisNullType }
-
-  TRedisNullType = class(TRedisDataType)
-  public
-    class function DataType : TRedisTypes; override;
-  end;
-
-  { TRedisStringType }
-
-  TRedisStringType = class(TRedisDataType)
-  public
-    class function DataType : TRedisTypes; override;
-  end;
-
-  { TRedisListType }
-
-  TRedisListType = class(TRedisDataType)
-  public
-    class function DataType : TRedisTypes; override;
-  end;
-
-  { TRedisSetType }
-
-  TRedisSetType = class(TRedisDataType)
-  public
-    class function DataType : TRedisTypes; override;
-  end;
-
-  { TRedisHashType }
-
-  TRedisHashType = class(TRedisDataType)
-  public
-    class function DataType : TRedisTypes; override;
-  end;
-
-  { TRedisSortedSet }
-
-  TRedisSortedSet = class(TRedisDataType)
-  public
-    class function DataType : TRedisTypes; override;
-  end;
-
-  TRedisContent = array of TRedisDataType;
-
   { TRedisParser }
 
   TRedisParser = class(TObject)
@@ -149,55 +88,6 @@ begin
     FIO := AIO
   else
     raise ERedisException.Create(txtMissingIO);
-end;
-
-{ TRedisSortedSet }
-
-class function TRedisSortedSet.DataType: TRedisTypes;
-begin
-  Result := rtSortedSet;
-end;
-
-{ TRedisHashType }
-
-class function TRedisHashType.DataType: TRedisTypes;
-begin
-  Result := rtHash;
-end;
-
-{ TRedisSetType }
-
-class function TRedisSetType.DataType: TRedisTypes;
-begin
-  Result := rtSet;
-end;
-
-{ TRedisListType }
-
-class function TRedisListType.DataType: TRedisTypes;
-begin
-  Result:= rtList;
-end;
-
-{ TRedisStringType }
-
-class function TRedisStringType.DataType: TRedisTypes;
-begin
-  Result := rtString;
-end;
-
-{ TRedisNullType }
-
-class function TRedisNullType.DataType: TRedisTypes;
-begin
-  Result := rtNull;
-end;
-
-{ TRedisDataType }
-
-class function TRedisDataType.DataType: TRedisTypes;
-begin
-  Result := rtUnknown;
 end;
 
 { TRadisDB }
