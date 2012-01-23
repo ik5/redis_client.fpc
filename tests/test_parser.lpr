@@ -29,6 +29,15 @@ begin
   end;
 end;
 
+function ParseStatus(const s : string) : String;
+var
+  ch : PChar;
+begin
+  SetString(s, ch, Length(s)); // Faster to use PChar to parse text ...
+
+  StrDispose(ch);
+end;
+
 begin
   writeln(s1, ' ', GetAnswerType(s1));
   writeln(s2, ' ', GetAnswerType(s2));
