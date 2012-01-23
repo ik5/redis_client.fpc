@@ -140,6 +140,8 @@ type
 
     function GetValue(index : integer) : TRedisReturnType;
     procedure SetValue(index : integer; AValue: TRedisReturnType);
+
+    procedure FreeItem(index : integer); inline;
   public
     class function ReturnType : TRedisAnswerType; override;
     class function IsNill : Boolean; override;
@@ -147,11 +149,14 @@ type
     constructor Create; virtual;
     destructor Destroy; override;
 
-    procedure Add(AValue : TRedisReturnType); virtual;
+    procedure Add(AValue : TRedisReturnType);                   virtual;
+    procedure Add(AIndex : Integer; AValue : TRedisReturnType); virtual;
 
     property Value[index : integer] : TRedisReturnType  read GetValue
                                                        write SetValue;
   published
+    // If you handle each item on your own, then make it false,
+    // otherwise keep it true, or you'll have memory leaks !
     property AutoFreeItem           : Boolean         read FAutoFreeItem
                                                      write FAutoFreeItem;
   end;
@@ -334,10 +339,15 @@ begin
     raise EListError.CreateFmt('Index %d out of bounds', [index]);
 
   if FAutoFreeItem then
-    if Assigned(FValues[index]) then
-      FreeAndNil(FValues[index]);
+    FreeItem(index);
 
   FValues[index] := AValue;
+end;
+
+procedure TRedisMultiBulkReturnType.FreeItem(index : integer);
+begin
+  if Assigned(FValues[index]) then
+    FreeAndNil(FValues[index]);
 end;
 
 class function TRedisMultiBulkReturnType.ReturnType: TRedisAnswerType;
@@ -362,19 +372,36 @@ var
 begin
   if FAutoFreeItem then
     for i := low(FValues) to High(FValues) do
-      if Assigned(FValues[i]) then
-        FreeAndNil(FValues[i]);
+      FreeItem(i);
 
   inherited Destroy;
 end;
 
 procedure TRedisMultiBulkReturnType.Add(AValue: TRedisReturnType);
-var
-  l : integer;
+var l : integer;
 begin
   l := Length(FValues);
   SetLength(FValues, l +1);
   FValues[l+1] := AValue;
+end;
+
+procedure TRedisMultiBulkReturnType.Add(AIndex: Integer;
+  AValue: TRedisReturnType);
+var l : integer;
+begin
+  l := Length(FValues);
+  if (AIndex < 0) or (AIndex > l+1) then
+     raise EListError.CreateFmt('Index %d out of bounds', [aindex]);
+
+  if AIndex > l then
+    begin
+      SetLength(FValues, l+1);
+    end
+  else begin
+     FreeItem(AIndex);
+  end;
+
+  FValues[AIndex] := AValue;
 end;
 
 { TRedisReturnType }
