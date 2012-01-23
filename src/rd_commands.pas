@@ -163,6 +163,7 @@ type
     procedure Add(AValue : TRedisReturnType);                   virtual;
     procedure Add(AIndex : Integer; AValue : TRedisReturnType); virtual;
     procedure Delete(AIndex : Integer);                         virtual;
+    procedure Exchange(A, B : Integer);                         virtual;
 
     property Value[index : integer] : TRedisReturnType  read GetValue
                                                        write SetValue;
@@ -425,8 +426,7 @@ end;
 
 procedure TRedisMultiBulkReturnType.Add(AValue: TRedisReturnType);
 begin
-  l := Length(FValues);
-  Add(AValue, l+1);
+  Add(Length(FValues) +1, AValue);
 end;
 
 procedure TRedisMultiBulkReturnType.Add(AIndex: Integer;
@@ -457,7 +457,7 @@ var l, i, b : integer;
 begin
   l := Length(FValues);
   if (AIndex < 0) or (AIndex > l) then
-     raise EListError.CreateFmt('Index %d out of bounds', [aindex]);
+    raise EListError.CreateFmt('Index %d out of bounds', [aindex]);
 
   if FAutoFreeItem then
      FreeItem(AIndex);
@@ -476,6 +476,24 @@ begin
     end;
 
   SetLength(FValues, l-1);
+end;
+
+procedure TRedisMultiBulkReturnType.Exchange(A, B: Integer);
+var
+  tmp : TRedisReturnType;
+  l   : integer;
+begin
+  if A = B then exit;
+  l := Length(FValues);
+  if (A < 0) or (A > l) then
+    raise EListError.CreateFmt('Index %d out of bounds', [A]);
+
+  if (B < 0) or  (B > l) then
+    raise EListError.CreateFmt('Index %d out of bounds', [B]);
+
+  tmp        := FValues[A];
+  FValues[A] := FValues[B];
+  FValues[B] := tmp;
 end;
 
 { TRedisReturnType }
