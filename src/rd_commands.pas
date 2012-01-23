@@ -207,7 +207,8 @@ type
   end;
 
 resourcestring
-  txtMissingIO = 'No RedisIO object was provided';
+  txtMissingIO        = 'No RedisIO object was provided';
+  txtIndexOutOfBounds = 'Index %d out of bounds';
 
 implementation
 
@@ -363,7 +364,7 @@ var l : integer;
 begin
   l := Length(FValues);
   if (index < 0) or (index > l) then
-    raise EListError.CreateFmt('Index %d out of bounds', [index]);
+    raise EListError.CreateFmt(txtIndexOutOfBounds, [index]);
 
   Result := FValues[index];
 end;
@@ -374,7 +375,7 @@ var l : integer;
 begin
   l := Length(FValues);
   if (index < 0) or (index > l) then
-    raise EListError.CreateFmt('Index %d out of bounds', [index]);
+    raise EListError.CreateFmt(txtIndexOutOfBounds, [index]);
 
   if FAutoFreeItem then
     FreeItem(index);
@@ -435,7 +436,7 @@ var l : integer;
 begin
   l := Length(FValues);
   if (AIndex < 0) or (AIndex > l+1) then
-     raise EListError.CreateFmt('Index %d out of bounds', [aindex]);
+     raise EListError.CreateFmt(txtIndexOutOfBounds, [aindex]);
 
   if AIndex > l then
     begin
@@ -457,7 +458,7 @@ var l, i, b : integer;
 begin
   l := Length(FValues);
   if (AIndex < 0) or (AIndex > l) then
-    raise EListError.CreateFmt('Index %d out of bounds', [aindex]);
+    raise EListError.CreateFmt(txtIndexOutOfBounds, [aindex]);
 
   if FAutoFreeItem then
      FreeItem(AIndex);
@@ -486,10 +487,10 @@ begin
   if A = B then exit;
   l := Length(FValues);
   if (A < 0) or (A > l) then
-    raise EListError.CreateFmt('Index %d out of bounds', [A]);
+    raise EListError.CreateFmt(txtIndexOutOfBounds, [A]);
 
   if (B < 0) or  (B > l) then
-    raise EListError.CreateFmt('Index %d out of bounds', [B]);
+    raise EListError.CreateFmt(txtIndexOutOfBounds, [B]);
 
   tmp        := FValues[A];
   FValues[A] := FValues[B];
