@@ -32,7 +32,6 @@ end;
 
 function ParseReturn(const s : string) : TRedisReturnType;
 var
-  ch     : PChar;
   i, l   : integer;
   tmp    : String;
   ToExit : Boolean;
@@ -40,30 +39,26 @@ begin
   Result := Nil;
   l      := Length(s);
   if l = 0 then exit;
-  //new(ch); // Allocate dynamic memory. Faster to use PChar to parse text ...
-  ch := StrAlloc(l+1);
-  StrPLCopy(ch, s, l);
-  //begn   := ch[1]; // Store the begining of the pointer ...
-  i      := 0;
+  i      := 1;
   tmp    := '';
 
   ToExit := true;
-  case ch[i] of
+  case s[i] of
   // Single start return
    RPLY_ERROR_CHAR,
    RPLY_INT_CHAR,
    RPLY_SINGLE_CHAR : begin
-                        case ch[i] of
+                        case s[i] of
                           RPLY_ERROR_CHAR  : Result := TRedisErrorReturnType.Create;
                           RPLY_INT_CHAR    : Result := TRedisNumericReturnType.Create;
                           RPLY_SINGLE_CHAR : Result := TRedisStatusReturnType.Create;
                         end;
 
                         inc(i);
-                        while (ch[i] <> #0) and
-                              (ch[i] <> #13)    do
+                        while (  i  <= l  ) and
+                              (s[i] <> #13)     do
                           begin
-                            tmp := tmp + ch[i];
+                            tmp := tmp + s[i];
                             inc(i);
                           end;
 
@@ -76,18 +71,16 @@ begin
 
   if ToExit then Exit;
 
-  // We have not yet arrive to the Null terminated char
-  while ch[i] <> #0 do
+  while (i <= l) do
    begin
      // Multi start return
-     case ch[i] of
+     case s[i] of
       RPLY_BULK_CHAR : ;
 
      end;
      inc(i);
    end;
 
-  StrDispose(ch);
 end;
 
 var
@@ -99,12 +92,16 @@ begin
   writeln(s3, ' ', GetAnswerType(s3));
   writeln(s4, ' ', GetAnswerType(s4));
   writeln(s5, ' ', GetAnswerType(s5));
+  writeln;
 
   r := ParseReturn(s1);
   writeln('Going over s1 (', s1, ') : [', r.Value, ']');
   r.Free;
   r := ParseReturn(s5);
   writeln('Going over s5 (', s5, ') : [', r.Value, ']');
+  r.Free;
+  r := ParseReturn(s3);
+  writeln('Going over s3 (', s3, ') : [', r.Value, ']');
   r.Free;
 end.
 
