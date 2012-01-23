@@ -102,6 +102,15 @@ type
   public
     class function ReturnType : TRedisAnswerType; override;
     class function IsNill : Boolean; override;
+
+    // Will throw exception if there is a problem
+    function AsInteger  : integer;  virtual;
+    function AsInt64    : Int64;    virtual;
+    function AsLongint  : Longint;  virtual;
+    function AsQWord    : QWord;    virtual;
+    function AsCardinal : Cardinal; virtual;
+
+    function AsExtended : Extended; virtual;
   published
     property Value;
   end;
@@ -224,6 +233,42 @@ end;
 class function TRedisNumericReturnType.IsNill: Boolean;
 begin
   Result := False;
+end;
+
+function TRedisNumericReturnType.AsInteger: integer;
+begin
+  Result := StrToInt(FValue);
+end;
+
+function TRedisNumericReturnType.AsInt64: Int64;
+begin
+  Result := StrToInt64(FValue);
+end;
+
+function TRedisNumericReturnType.AsLongint: Longint;
+var i : word;
+begin
+  val(FValue, Result, i);
+  if i <> 0 then raise
+    EConvertError.CreateFmt('Error Converting %s to integer at %d', [FValue, i]);
+end;
+
+function TRedisNumericReturnType.AsQWord: QWord;
+begin
+  Result := StrToQWord(FValue);
+end;
+
+function TRedisNumericReturnType.AsCardinal: Cardinal;
+var i : word;
+begin
+  val(FValue, Result, i);
+  if i <> 0 then
+    EConvertError.CreateFmt('Error Converting %s to integer at %d', [FValue, i]);
+end;
+
+function TRedisNumericReturnType.AsExtended: Extended;
+begin
+  Result := StrToFloat(FValue);
 end;
 
 { TRedisErrorReturnType }
