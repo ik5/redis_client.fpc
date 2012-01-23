@@ -35,6 +35,8 @@ var
   i, l   : integer;
   tmp    : String;
   ToExit : Boolean;
+  p      : integer;
+
 begin
   Result := Nil;
   l      := Length(s);
@@ -47,24 +49,53 @@ begin
   // Single start return
    RPLY_ERROR_CHAR,
    RPLY_INT_CHAR,
-   RPLY_SINGLE_CHAR : begin
-                        case s[i] of
-                          RPLY_ERROR_CHAR  : Result := TRedisErrorReturnType.Create;
-                          RPLY_INT_CHAR    : Result := TRedisNumericReturnType.Create;
-                          RPLY_SINGLE_CHAR : Result := TRedisStatusReturnType.Create;
-                        end;
+   RPLY_SINGLE_CHAR :
+     begin
+      case s[i] of
+        RPLY_ERROR_CHAR  : Result := TRedisErrorReturnType.Create;
+        RPLY_INT_CHAR    : Result := TRedisNumericReturnType.Create;
+        RPLY_SINGLE_CHAR : Result := TRedisStatusReturnType.Create;
+      end;
 
-                        inc(i);
-                        while (  i  <= l  ) and
-                              (s[i] <> #13)     do
-                          begin
-                            tmp := tmp + s[i];
-                            inc(i);
-                          end;
+      inc(i);
+      while (  i  <= l  ) and
+            (s[i] <> #13)     do
+        begin
+          tmp := tmp + s[i];
+          inc(i);
+        end;
 
-                        Result.Value := tmp;
-                      end;
+      Result.Value := tmp;
+     end;
 
+   RPLY_BULK_CHAR :
+     begin
+      Result := TRedisBulkReturnType.Create;
+      inc(i);
+      while (s[i] <> #13) and (i <= l) do
+       begin
+         tmp := tmp + s[i]; // Get the length of the item
+         inc(i);
+       end;
+
+      if not TryStrToInt(tmp, p) then
+        begin
+          Result.Free;
+          Result := nil;
+          Raise ERedisException.Create('Unable to get proper item length.');
+        end;
+
+      inc(i, 2); // go to the next value after #13#10
+      // Get the value from the string
+      tmp := '';
+      while ((s[i] <> #13) and (i <= l)) or (Length(tmp) = p-1) do
+       begin
+         tmp := tmp + s[i];
+         inc(i);
+       end;
+
+      Result.Value := tmp;
+     end;
   else
     ToExit := false;
   end;
@@ -74,11 +105,9 @@ begin
   while (i <= l) do
    begin
      // Multi start return
-     case s[i] of
-      RPLY_BULK_CHAR : ;
+     //case s[i] of
 
-     end;
-     inc(i);
+     //end;
    end;
 
 end;
@@ -102,6 +131,9 @@ begin
   r.Free;
   r := ParseReturn(s3);
   writeln('Going over s3 (', s3, ') : [', r.Value, ']');
+  r.Free;
+  r := ParseReturn(s4);
+  writeln('Going over s4 (', s4, ') : [', r.Value, ']');
   r.Free;
 end.
 
