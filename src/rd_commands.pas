@@ -43,16 +43,6 @@ type
                       ratNumeric,   ratBulk,
                       ratMultiBulk, ratUnknown);
 
-  // Some foreword stuff
-
-  TRedisReturnType          = class(TPersistent);
-  TRedisStatusReturnType    = class(TRedisReturnType);
-  TRedisErrorReturnType     = class(TRedisReturnType);
-  TRedisNumericReturnType   = class(TRedisReturnType);
-  TRedisBulkReturnType      = class(TRedisReturnType);
-  TRedisMultiBulkReturnType = class(TRedisReturnType);
-  TRedisNullReturnType      = class(TRedisReturnType);
-
   { TRedisReturnType }
 
   (*
@@ -60,9 +50,14 @@ type
     So This is an abstract class for return types.
   *)
   TRedisReturnType = class(TPersistent)
+  protected
+    FValue : String;
   public
     class function ReturnType : TRedisAnswerType; virtual;
     class function IsNill : Boolean; virtual;
+
+  published
+    property Value : String read FValue write FValue;
   end;
 
   { TRedisNullReturnType }
@@ -70,8 +65,11 @@ type
   // If the content is null (not empty, but really null)
   TRedisNullReturnType = class(TRedisReturnType)
   public
+    constructor Create; virtual;
     class function ReturnType : TRedisAnswerType; override;
     class function IsNill : Boolean; override;
+
+    property Value : String read FValue;
   end;
 
   { TRedisStatusReturnType }
@@ -81,6 +79,9 @@ type
   public
     class function ReturnType : TRedisAnswerType; override;
     class function IsNill : Boolean; override;
+
+  published
+    property Value;
   end;
 
   { TRedisErrorReturnType }
@@ -90,6 +91,8 @@ type
   public
     class function ReturnType : TRedisAnswerType; override;
     class function IsNill : Boolean; override;
+  published
+    property Value;
   end;
 
   { TRedisNumericReturnType }
@@ -99,6 +102,8 @@ type
   public
     class function ReturnType : TRedisAnswerType; override;
     class function IsNill : Boolean; override;
+  published
+    property Value;
   end;
 
   { TRedisBulkReturnType }
@@ -108,6 +113,8 @@ type
   public
     class function ReturnType : TRedisAnswerType; override;
     class function IsNill : Boolean; override;
+  published
+    property Value;
   end;
 
   { TRedisMultiBulkReturnType }
@@ -160,6 +167,11 @@ resourcestring
 implementation
 
 { TRedisNullReturnType }
+
+constructor TRedisNullReturnType.Create;
+begin
+  Fvalue := '';
+end;
 
 class function TRedisNullReturnType.ReturnType: TRedisAnswerType;
 begin
