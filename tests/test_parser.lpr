@@ -53,7 +53,7 @@ begin
    RPLY_SINGLE_CHAR   : begin
                           case ch[i] of
                             RPLY_ERROR_CHAR  : Result := TRedisErrorReturnType.Create;
-                            RPLY_INT_CHAR    : Result := TRedisNullReturnType.Create;
+                            RPLY_INT_CHAR    : Result := TRedisNumericReturnType.Create;
                             RPLY_SINGLE_CHAR : Result := TRedisStatusReturnType.Create;
                           end;
 
