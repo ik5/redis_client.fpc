@@ -51,14 +51,13 @@ type
   TRedisNumericReturnType   = class(TRedisReturnType);
   TRedisBulkReturnType      = class(TRedisReturnType);
   TRedisMultiBulkReturnType = class(TRedisReturnType);
+  TRedisNullReturnType      = class(TRedisReturnType);
 
   { TRedisReturnType }
 
   (*
     We are not a dynamic language, we must better understand what we return
     So This is an abstract class for return types.
-
-    This also what will be returned as nil !
   *)
   TRedisReturnType = class(TPersistent)
   public
@@ -66,8 +65,18 @@ type
     class function IsNill : Boolean; virtual;
   end;
 
+  { TRedisNullReturnType }
+
+  // If the content is null (not empty, but really null)
+  TRedisNullReturnType = class(TRedisReturnType)
+  public
+    class function ReturnType : TRedisAnswerType; override;
+    class function IsNill : Boolean; override;
+  end;
+
   { TRedisStatusReturnType }
 
+  // Return status such as OK
   TRedisStatusReturnType = class(TRedisReturnType)
   public
     class function ReturnType : TRedisAnswerType; override;
@@ -76,6 +85,7 @@ type
 
   { TRedisErrorReturnType }
 
+  // Return error string
   TRedisErrorReturnType = class(TRedisReturnType)
   public
     class function ReturnType : TRedisAnswerType; override;
@@ -84,6 +94,7 @@ type
 
   { TRedisNumericReturnType }
 
+  // Return numeric value such as 1000
   TRedisNumericReturnType = class(TRedisReturnType)
   public
     class function ReturnType : TRedisAnswerType; override;
@@ -92,6 +103,7 @@ type
 
   { TRedisBulkReturnType }
 
+  // Return a bulk type, such as normal string
   TRedisBulkReturnType = class(TRedisReturnType)
   public
     class function ReturnType : TRedisAnswerType; override;
@@ -100,6 +112,7 @@ type
 
   { TRedisMultiBulkReturnType }
 
+  // Return a list of mostly Bulk
   TRedisMultiBulkReturnType = class(TRedisReturnType)
   protected
     type
@@ -145,6 +158,18 @@ resourcestring
   txtMissingIO = 'No RedisIO object was provided';
 
 implementation
+
+{ TRedisNullReturnType }
+
+class function TRedisNullReturnType.ReturnType: TRedisAnswerType;
+begin
+  Result := inherited ReturnType;
+end;
+
+class function TRedisNullReturnType.IsNill: Boolean;
+begin
+  Result := inherited IsNill;
+end;
 
 { TRedisParser }
 
