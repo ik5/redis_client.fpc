@@ -16,6 +16,8 @@ Files
 
   - rd_commands.pas - Implementing the commands supported by the database
 
+  - rd_types.pas    - Implementing the content types that Redis can have 
+
 
 Dependencies 
 ============
