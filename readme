@@ -11,6 +11,7 @@ changes, I do wish to see return back to the community.
 
 Files
 =====
+src/
   - rd_protocol.pas - Implementing the protocol itself:
                       http://redis.io/topics/protocol
 
