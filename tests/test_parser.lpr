@@ -40,7 +40,7 @@ begin
   Result := Nil;
   if Length(s) = 0 then exit;
   new(ch); // Allocate dynamic memory. Faster to use PChar to parse text ...
-  StrPLCopy(ch, s, Length(s));
+  StrPLCopy(ch, s, Length(s)+1);
   //begn   := ch[1]; // Store the begining of the pointer ...
   i      := 0;
   tmp    := '';
@@ -50,23 +50,23 @@ begin
   // Single start return
    RPLY_ERROR_CHAR,
    RPLY_INT_CHAR,
-   RPLY_SINGLE_CHAR   : begin
-                          case ch[i] of
-                            RPLY_ERROR_CHAR  : Result := TRedisErrorReturnType.Create;
-                            RPLY_INT_CHAR    : Result := TRedisNumericReturnType.Create;
-                            RPLY_SINGLE_CHAR : Result := TRedisStatusReturnType.Create;
+   RPLY_SINGLE_CHAR : begin
+                        case ch[i] of
+                          RPLY_ERROR_CHAR  : Result := TRedisErrorReturnType.Create;
+                          RPLY_INT_CHAR    : Result := TRedisNumericReturnType.Create;
+                          RPLY_SINGLE_CHAR : Result := TRedisStatusReturnType.Create;
+                        end;
+
+                        inc(i);
+                        while (ch[i] <> #0) and
+                              (ch[i] <> #13)    do
+                          begin
+                            tmp := tmp + ch[i];
+                            inc(i);
                           end;
 
-                          inc(i);
-                          while (ch[i] <> #0) and
-                                (ch[i] <> #13)    do
-                            begin
-                              tmp := tmp + ch[i];
-                              inc(i);
-                            end;
-
-                          Result.Value := tmp;
-                        end;
+                        Result.Value := tmp;
+                      end;
 
   else
     ToExit := false;
