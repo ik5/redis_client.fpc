@@ -424,11 +424,9 @@ begin
 end;
 
 procedure TRedisMultiBulkReturnType.Add(AValue: TRedisReturnType);
-var l : integer;
 begin
   l := Length(FValues);
-  SetLength(FValues, l +1);
-  FValues[l+1] := AValue;
+  Add(AValue, l+1);
 end;
 
 procedure TRedisMultiBulkReturnType.Add(AIndex: Integer;
@@ -447,7 +445,11 @@ begin
      FreeItem(AIndex);
   end;
 
-  FValues[AIndex] := AValue;
+  // convert nil to the proper type ...
+  if AValue = nil then
+    FValues[AIndex] := TRedisNullReturnType.Create
+  else
+    FValues[AIndex] := AValue;
 end;
 
 procedure TRedisMultiBulkReturnType.Delete(AIndex: Integer);
