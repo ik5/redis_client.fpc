@@ -35,7 +35,7 @@ unit rd_types;
 interface
 
 uses
-  Classes, SysUtils, rd_protocol;
+  Classes, rd_protocol;
 
 type
   TRedisAnswerType = (ratStatus,    ratError,
@@ -177,6 +177,7 @@ resourcestring
   txtIndexOutOfBounds = 'Index %d out of bounds';
 
 implementation
+uses SysUtils;
 
 { TRedisNullReturnType }
 
