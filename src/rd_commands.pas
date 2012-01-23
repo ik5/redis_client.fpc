@@ -56,6 +56,7 @@ type
     class function ReturnType : TRedisAnswerType; virtual;
     class function IsNill : Boolean; virtual;
 
+    function AsRedisString : String; virtual;
   published
     property Value : String read FValue write FValue;
   end;
@@ -69,6 +70,8 @@ type
     class function ReturnType : TRedisAnswerType; override;
     class function IsNill : Boolean; override;
 
+    function AsRedisString : String; override;
+
     property Value : String read FValue;
   end;
 
@@ -80,6 +83,7 @@ type
     class function ReturnType : TRedisAnswerType; override;
     class function IsNill : Boolean; override;
 
+    function AsRedisString : String; override;
   published
     property Value;
   end;
@@ -91,6 +95,8 @@ type
   public
     class function ReturnType : TRedisAnswerType; override;
     class function IsNill : Boolean; override;
+
+    function AsRedisString : String; override;
   published
     property Value;
   end;
@@ -111,6 +117,8 @@ type
     function AsCardinal : Cardinal; virtual;
 
     function AsExtended : Extended; virtual;
+
+    function AsRedisString : String; override;
   published
     property Value;
   end;
@@ -122,6 +130,8 @@ type
   public
     class function ReturnType : TRedisAnswerType; override;
     class function IsNill : Boolean; override;
+
+    function AsRedisString : String; override;
   published
     property Value;
   end;
@@ -144,6 +154,8 @@ type
   public
     class function ReturnType : TRedisAnswerType; override;
     class function IsNill : Boolean; override;
+
+    function AsRedisString : String; override;
 
     constructor Create; virtual;
     destructor Destroy; override;
@@ -215,6 +227,11 @@ begin
   Result := inherited IsNill;
 end;
 
+function TRedisNullReturnType.AsRedisString: String;
+begin
+  Result := inherited AsRedisString;
+end;
+
 { TRedisParser }
 
 function TRedisParser.GetAnswerType(const s: string): TRedisAnswerType;
@@ -244,6 +261,11 @@ end;
 class function TRedisBulkReturnType.IsNill: Boolean;
 begin
   Result := False;
+end;
+
+function TRedisBulkReturnType.AsRedisString: String;
+begin
+  Result := RPLY_BULK_CHAR + IntToStr(Length(FValue)) + CRLF + FValue + CRLF;
 end;
 
 { TRedisNumericReturnType }
@@ -294,6 +316,11 @@ begin
   Result := StrToFloat(FValue);
 end;
 
+function TRedisNumericReturnType.AsRedisString: String;
+begin
+  Result := RPLY_INT_CHAR + FValue + CRLF;
+end;
+
 { TRedisErrorReturnType }
 
 class function TRedisErrorReturnType.ReturnType: TRedisAnswerType;
@@ -306,6 +333,11 @@ begin
   Result := False;
 end;
 
+function TRedisErrorReturnType.AsRedisString: String;
+begin
+  Result := RPLY_ERROR_CHAR + FValue + CRLF;
+end;
+
 { TRedisStatusReturnType }
 
 class function TRedisStatusReturnType.ReturnType: TRedisAnswerType;
@@ -316,6 +348,11 @@ end;
 class function TRedisStatusReturnType.IsNill: Boolean;
 begin
   Result := False;
+end;
+
+function TRedisStatusReturnType.AsRedisString: String;
+begin
+  Result := RPLY_SINGLE_CHAR + FValue + CRLF;
 end;
 
 { TRedisMultiBulkReturnType }
@@ -358,6 +395,15 @@ end;
 class function TRedisMultiBulkReturnType.IsNill: Boolean;
 begin
   Result := False;
+end;
+
+function TRedisMultiBulkReturnType.AsRedisString : String;
+var i : integer;
+begin
+  Result := RPLY_MULTI_BULK_CHAR + IntToStr(Length(FValues)) + CRLF;
+  for i := Low(FValues) to High(FValues) do
+    Result := Result + FValues[i].AsRedisString;
+
 end;
 
 constructor TRedisMultiBulkReturnType.Create;
@@ -440,6 +486,11 @@ end;
 class function TRedisReturnType.IsNill: Boolean;
 begin
   Result := true;
+end;
+
+function TRedisReturnType.AsRedisString: String;
+begin
+  Result := RPLY_BULK_CHAR + '-1' + CRLF;
 end;
 
 { TRedisCommands }
