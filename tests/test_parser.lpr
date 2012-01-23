@@ -33,14 +33,16 @@ end;
 function ParseReturn(const s : string) : TRedisReturnType;
 var
   ch     : PChar;
-  i      : integer;
+  i, l   : integer;
   tmp    : String;
   ToExit : Boolean;
 begin
   Result := Nil;
-  if Length(s) = 0 then exit;
-  new(ch); // Allocate dynamic memory. Faster to use PChar to parse text ...
-  StrPLCopy(ch, s, Length(s)+1);
+  l      := Length(s);
+  if l = 0 then exit;
+  //new(ch); // Allocate dynamic memory. Faster to use PChar to parse text ...
+  ch := StrAlloc(l+1);
+  StrPLCopy(ch, s, l);
   //begn   := ch[1]; // Store the begining of the pointer ...
   i      := 0;
   tmp    := '';
