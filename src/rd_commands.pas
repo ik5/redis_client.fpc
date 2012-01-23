@@ -133,9 +133,27 @@ type
   protected
     type
       TMultiBulkList = array of TRedisReturnType;
+
+   var
+     FAutoFreeItem : Boolean;
+     FValues       : TMultiBulkList;
+
+    function GetValue(index : integer) : TRedisReturnType;
+    procedure SetValue(index : integer; AValue: TRedisReturnType);
   public
     class function ReturnType : TRedisAnswerType; override;
     class function IsNill : Boolean; override;
+
+    constructor Create; virtual;
+    destructor Destroy; override;
+
+    procedure Add(AValue : TRedisReturnType); virtual;
+
+    property Value[index : integer] : TRedisReturnType  read GetValue
+                                                       write SetValue;
+  published
+    property AutoFreeItem           : Boolean         read FAutoFreeItem
+                                                     write FAutoFreeItem;
   end;
 
   { TRedisParser }
@@ -297,6 +315,31 @@ end;
 
 { TRedisMultiBulkReturnType }
 
+function TRedisMultiBulkReturnType.GetValue(index : integer): TRedisReturnType;
+var l : integer;
+begin
+  l := Length(FValues);
+  if (index < 0) or (index > l) then
+    raise EListError.CreateFmt('Index %d out of bounds', [index]);
+
+  Result := FValues[index];
+end;
+
+procedure TRedisMultiBulkReturnType.SetValue(index : integer;
+  AValue: TRedisReturnType);
+var l : integer;
+begin
+  l := Length(FValues);
+  if (index < 0) or (index > l) then
+    raise EListError.CreateFmt('Index %d out of bounds', [index]);
+
+  if FAutoFreeItem then
+    if Assigned(FValues[index]) then
+      FreeAndNil(FValues[index]);
+
+  FValues[index] := AValue;
+end;
+
 class function TRedisMultiBulkReturnType.ReturnType: TRedisAnswerType;
 begin
   Result := ratMultiBulk;
@@ -305,6 +348,33 @@ end;
 class function TRedisMultiBulkReturnType.IsNill: Boolean;
 begin
   Result := False;
+end;
+
+constructor TRedisMultiBulkReturnType.Create;
+begin
+  SetLength(FValues,0);
+  FAutoFreeItem := true;
+end;
+
+destructor TRedisMultiBulkReturnType.Destroy;
+var
+  i : integer;
+begin
+  if FAutoFreeItem then
+    for i := low(FValues) to High(FValues) do
+      if Assigned(FValues[i]) then
+        FreeAndNil(FValues[i]);
+
+  inherited Destroy;
+end;
+
+procedure TRedisMultiBulkReturnType.Add(AValue: TRedisReturnType);
+var
+  l : integer;
+begin
+  l := Length(FValues);
+  SetLength(FValues, l +1);
+  FValues[l+1] := AValue;
 end;
 
 { TRedisReturnType }
