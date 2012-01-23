@@ -131,8 +131,7 @@ type
   // Return a list of mostly Bulk
   TRedisMultiBulkReturnType = class(TRedisReturnType)
   protected
-    type
-      TMultiBulkList = array of TRedisReturnType;
+    type TMultiBulkList = array of TRedisReturnType;
 
    var
      FAutoFreeItem : Boolean;
@@ -151,14 +150,15 @@ type
 
     procedure Add(AValue : TRedisReturnType);                   virtual;
     procedure Add(AIndex : Integer; AValue : TRedisReturnType); virtual;
+    procedure Delete(AIndex : Integer);                         virtual;
 
     property Value[index : integer] : TRedisReturnType  read GetValue
                                                        write SetValue;
   published
-    // If you handle each item on your own, then make it false,
-    // otherwise keep it true, or you'll have memory leaks !
-    property AutoFreeItem           : Boolean         read FAutoFreeItem
-                                                     write FAutoFreeItem;
+    (* If you handle each item on your own, then make it false,
+       otherwise keep it true, or you'll have memory leaks ! *)
+    property AutoFreeItem : Boolean  read FAutoFreeItem
+                                    write FAutoFreeItem;
   end;
 
   { TRedisParser }
@@ -402,6 +402,32 @@ begin
   end;
 
   FValues[AIndex] := AValue;
+end;
+
+procedure TRedisMultiBulkReturnType.Delete(AIndex: Integer);
+var l, i, b : integer;
+begin
+  l := Length(FValues);
+  if (AIndex < 0) or (AIndex > l) then
+     raise EListError.CreateFmt('Index %d out of bounds', [aindex]);
+
+  if FAutoFreeItem then
+     FreeItem(AIndex);
+
+  if AIndex <> l then
+    begin
+     if AIndex = 0 then
+      b := 1
+     else
+      b := AIndex +1;
+
+      for i := b to l do
+        begin
+          FValues[i-1] := FValues[i]; // Move backwords ...
+        end;
+    end;
+
+  SetLength(FValues, l-1);
 end;
 
 { TRedisReturnType }
