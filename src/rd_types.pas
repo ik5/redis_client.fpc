@@ -160,7 +160,7 @@ type
     destructor Destroy; override;
 
     procedure Add(AValue : TRedisReturnType);                   virtual;
-    procedure Add(AIndex : Integer; AValue : TRedisReturnType); virtual;
+    procedure Insert(AIndex : Integer; AValue : TRedisReturnType); virtual;
     procedure Delete(AIndex : Integer);                         virtual;
     procedure Exchange(A, B : Integer);                         virtual;
 
@@ -373,10 +373,10 @@ end;
 
 procedure TRedisMultiBulkReturnType.Add(AValue: TRedisReturnType);
 begin
-  Add(Length(FValues) +1, AValue);
+  Insert(Length(FValues) +1, AValue);
 end;
 
-procedure TRedisMultiBulkReturnType.Add(AIndex: Integer;
+procedure TRedisMultiBulkReturnType.Insert(AIndex: Integer;
   AValue: TRedisReturnType);
 var l : integer;
 begin
