@@ -70,7 +70,6 @@ begin
 
    RPLY_BULK_CHAR :
      begin
-      Result := TRedisBulkReturnType.Create;
       inc(i);
       while (s[i] <> #13) and (i <= l) do
        begin
@@ -84,6 +83,14 @@ begin
           Result := nil;
           Raise ERedisException.Create('Unable to get proper item length.');
         end;
+
+      if p = -1 then
+        begin
+          Result := TRedisNullReturnType.Create;
+          exit;
+        end
+      else
+        Result := TRedisBulkReturnType.Create;
 
       inc(i, 2); // go to the next value after #13#10
       // Get the value from the string
