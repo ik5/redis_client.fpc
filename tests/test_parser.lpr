@@ -12,6 +12,8 @@ const
   s3 = ':1000'#13#10;
   s4 = '$6'#13#10'foobar'#13#10;
   s5 = '-All your base are belong to us'#13#10;
+  s6 = '$-1'#13#10;
+  s7 = '$0'#13#10; // Empty, but not null
 
 function GetAnswerType(const s : string) : TRedisAnswerType;
 var
@@ -128,19 +130,27 @@ begin
   writeln(s3, ' ', GetAnswerType(s3));
   writeln(s4, ' ', GetAnswerType(s4));
   writeln(s5, ' ', GetAnswerType(s5));
+  writeln(s6, ' ', GetAnswerType(s6));
+  writeln(s7, ' ', GetAnswerType(s6));
   writeln;
 
   r := ParseReturn(s1);
-  writeln('Going over s1 (', s1, ') : [', r.Value, ']');
+  writeln('Going over s1 (', s1, ') : [', r.Value, ']', ' ', r.IsNill);
   r.Free;
   r := ParseReturn(s5);
-  writeln('Going over s5 (', s5, ') : [', r.Value, ']');
+  writeln('Going over s5 (', s5, ') : [', r.Value, ']', ' ', r.IsNill);
   r.Free;
   r := ParseReturn(s3);
-  writeln('Going over s3 (', s3, ') : [', r.Value, ']');
+  writeln('Going over s3 (', s3, ') : [', r.Value, ']', ' ', r.IsNill);
   r.Free;
   r := ParseReturn(s4);
-  writeln('Going over s4 (', s4, ') : [', r.Value, ']');
+  writeln('Going over s4 (', s4, ') : [', r.Value, ']', ' ', r.IsNill);
+  r.Free;
+  r := ParseReturn(s6);
+  writeln('Going over s6 (', s6, ') : [', r.Value, ']', ' ', r.IsNill);
+  r.Free;
+  r := ParseReturn(s7);
+  writeln('Going over s7 (', s7, ') : [', r.Value, ']', ' ', r.IsNill);
   r.Free;
 end.
 
