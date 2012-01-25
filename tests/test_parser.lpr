@@ -33,11 +33,54 @@ begin
 end;
 
 function ParseReturn(const s : string) : TRedisReturnType;
+
+  function GetBulkItem(ALine : String) : TRedisReturnType; inline;
+  var
+    alength, j, x : integer;
+    tmps          : string;
+  begin
+    alength := Length(Aline);
+    j       := 2;
+    tmps    := '';
+    while (ALine[j] <> #13) and (j <= alength) do
+     begin
+       tmps := tmps + ALine[j]; // Get the length of the item
+       inc(j);
+     end;
+
+    if not TryStrToInt(tmps, x) then
+      begin
+        if Assigned(Result) then
+          begin
+           Result.Free;
+           Result := nil;
+          end;
+        Raise ERedisException.Create('Unable to get proper item length.');
+      end;
+
+    if x = -1 then
+      begin
+        Result := TRedisNullReturnType.Create;
+        exit;
+      end
+    else
+      Result := TRedisBulkReturnType.Create;
+
+    inc(j, 2); // go to the next value after #13#10
+    // Get the value from the string
+    tmps := '';
+    while ((ALine[j] <> #13) and (j <= alength)) or (Length(tmps) = x-1) do
+     begin
+       tmps := tmps + ALine[j];
+       inc(j);
+     end;
+
+    Result.Value := tmps;
+  end;
+
 var
-  i, l   : integer;
-  tmp    : String;
-  ToExit : Boolean;
-  p      : integer;
+  i, l : integer;
+  tmp  : String;
 
 begin
   Result := Nil;
@@ -46,12 +89,11 @@ begin
   i      := 1;
   tmp    := '';
 
-  ToExit := true;
   case s[i] of
   // Single start return
    RPLY_ERROR_CHAR,
    RPLY_INT_CHAR,
-   RPLY_SINGLE_CHAR :
+   RPLY_SINGLE_CHAR     :
      begin
       case s[i] of
         RPLY_ERROR_CHAR  : Result := TRedisErrorReturnType.Create;
@@ -70,54 +112,14 @@ begin
       Result.Value := tmp;
      end;
 
-   RPLY_BULK_CHAR :
+   RPLY_BULK_CHAR       : Result := GetBulkItem(s);
+   RPLY_MULTI_BULK_CHAR :
      begin
-      inc(i);
-      while (s[i] <> #13) and (i <= l) do
-       begin
-         tmp := tmp + s[i]; // Get the length of the item
-         inc(i);
-       end;
 
-      if not TryStrToInt(tmp, p) then
-        begin
-          Result.Free;
-          Result := nil;
-          Raise ERedisException.Create('Unable to get proper item length.');
-        end;
-
-      if p = -1 then
-        begin
-          Result := TRedisNullReturnType.Create;
-          exit;
-        end
-      else
-        Result := TRedisBulkReturnType.Create;
-
-      inc(i, 2); // go to the next value after #13#10
-      // Get the value from the string
-      tmp := '';
-      while ((s[i] <> #13) and (i <= l)) or (Length(tmp) = p-1) do
-       begin
-         tmp := tmp + s[i];
-         inc(i);
-       end;
-
-      Result.Value := tmp;
      end;
   else
-    ToExit := false;
+    raise ERedisException.CreateFmt('Unknown string was given : %s', [s]);
   end;
-
-  if ToExit then Exit;
-
-  while (i <= l) do
-   begin
-     // Multi start return
-     //case s[i] of
-
-     //end;
-   end;
 
 end;
 
