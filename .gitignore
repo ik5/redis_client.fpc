@@ -5,6 +5,7 @@
 */*ico
 */*res
 */*lps
+*/*dbg
 tests/test_protocol
 tests/test_commands
 tests/test_parser
