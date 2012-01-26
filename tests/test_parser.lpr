@@ -82,7 +82,6 @@ function ParseReturn(const s : string) : TRedisReturnType;
     tmps    := '';
     while (j <= alength) and (ALine[j] <> #13) do
      begin
-       writeln(stderr, Format('[%s] - [%d] [%s]', [tmps, j ,ALine[j]]));
        tmps := tmps + ALine[j]; // Get the length of the item
        inc(j);
      end;
@@ -163,7 +162,7 @@ begin
             end;
 
        for i := Low(list) to high(list) do
-         TRedisMultiBulkReturnType(Result).Add(ParseReturn(list[i]));
+         TRedisMultiBulkReturnType(Result).Add(GetBulkItem(list[i]));
      end;
   else
     raise ERedisException.CreateFmt('Unknown string was given : %s', [s]);
@@ -215,7 +214,7 @@ begin
   r := ParseReturn(s2);
   writeln('Going over s2 (', s2, ') :');
   for i := 0 to TRedisMultiBulkReturnType(r).Count -1 do
-    writeln(TRedisMultiBulkReturnType(r).Value[i].Value);
+    writeln(#9, i+1, '. ', TRedisMultiBulkReturnType(r).Value[i].Value);
   r.Free;
 end.
 
