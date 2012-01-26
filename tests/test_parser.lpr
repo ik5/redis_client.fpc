@@ -3,7 +3,7 @@ program test_parser;
 {$mode objfpc}{$H+}
 
 uses
-  SysUtils, laz_synapse, rd_protocol, rd_commands, rd_types
+  SysUtils, laz_synapse, rd_protocol, rd_commands, rd_types, strutils
   { you can add units after this };
 
 const
@@ -14,6 +14,44 @@ const
   s5 = '-All your base are belong to us'#13#10;
   s6 = '$-1'#13#10;
   s7 = '$0'#13#10; // Empty, but not null
+
+type
+  TArrStringList = array of string;
+
+function split_bulk(const s : string) : TArrStringList;
+var
+  l, i, c, idx : integer;
+  function extract_length(var ai : integer) : string;
+  begin
+    Result := '';
+    while (s[ai] <> #13) and (ai < l) do
+      begin
+        if s[ai] in ['0'..'9'] then
+          result := result + s[ai];
+        inc(ai);
+      end;
+  end;
+
+begin
+  i   := 1;
+  l   := Length(s);
+  idx := -1;
+  c   := StrToInt(extract_length(i));
+  SetLength(Result, c);
+  inc(i,2);
+
+  while (i < l) and (idx+1 <= c) do
+    begin
+     if (s[i] = '$') then
+       begin
+        inc(idx);
+        result[idx] := '';
+       end;
+     result[idx] := result[idx] + s[i];
+     inc(i);
+    end;
+
+end;
 
 function GetAnswerType(const s : string) : TRedisAnswerType;
 var
@@ -34,7 +72,7 @@ end;
 
 function ParseReturn(const s : string) : TRedisReturnType;
 
-  function GetBulkItem(ALine : String) : TRedisReturnType; inline;
+  function GetBulkItem(ALine : String) : TRedisReturnType;
   var
     alength, j, x : integer;
     tmps          : string;
@@ -44,6 +82,7 @@ function ParseReturn(const s : string) : TRedisReturnType;
     tmps    := '';
     while (ALine[j] <> #13) and (j <= alength) do
      begin
+       writeln(stderr, Format('[%s] - [%d] [%s]', [tmps, j ,ALine[j]]));
        tmps := tmps + ALine[j]; // Get the length of the item
        inc(j);
      end;
@@ -81,6 +120,7 @@ function ParseReturn(const s : string) : TRedisReturnType;
 var
   i, l : integer;
   tmp  : String;
+  list : TArrStringList;
 
 begin
   Result := Nil;
@@ -111,11 +151,19 @@ begin
 
       Result.Value := tmp;
      end;
-
    RPLY_BULK_CHAR       : Result := GetBulkItem(s);
    RPLY_MULTI_BULK_CHAR :
      begin
+       list := split_bulk(s);
+       if Length(list) > 0 then
+         Result := TRedisMultiBulkReturnType.Create
+       else begin
+             Result := TRedisNullReturnType.Create;
+             exit;
+            end;
 
+       for i := Low(list) to high(list) do
+         TRedisMultiBulkReturnType(Result).Add(ParseReturn(list[i]));
      end;
   else
     raise ERedisException.CreateFmt('Unknown string was given : %s', [s]);
@@ -124,7 +172,9 @@ begin
 end;
 
 var
-  r : TRedisReturnType;
+  r    : TRedisReturnType;
+  list : TArrStringList;
+  i    : integer;
 
 begin
   writeln(s1, ' ', GetAnswerType(s1));
@@ -134,6 +184,13 @@ begin
   writeln(s5, ' ', GetAnswerType(s5));
   writeln(s6, ' ', GetAnswerType(s6));
   writeln(s7, ' ', GetAnswerType(s6));
+  writeln;
+
+  list := split_bulk(s2);
+  writeln('Testing split: ', Length(list));
+  for i := 0 to High(list) do
+    writeln(#9, i +1,'. ', list[i]);
+
   writeln;
 
   r := ParseReturn(s1);
@@ -153,6 +210,12 @@ begin
   r.Free;
   r := ParseReturn(s7);
   writeln('Going over s7 (', s7, ') : [', r.Value, ']', ' ', r.IsNill);
+  r.Free;
+
+  r := ParseReturn(s2);
+  writeln('Going over s2 (', s2, ') :');
+  for i := 0 to TRedisMultiBulkReturnType(r).Count -1 do
+    writeln(TRedisMultiBulkReturnType(r).Value[i].Value);
   r.Free;
 end.
 
