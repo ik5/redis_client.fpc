@@ -148,6 +148,7 @@ type
 
     function GetValue(index : integer) : TRedisReturnType;
     procedure SetValue(index : integer; AValue: TRedisReturnType);
+    function GetLength : Integer;
 
     procedure FreeItem(index : integer); inline;
   public
@@ -164,6 +165,7 @@ type
     procedure Delete(AIndex : Integer);                         virtual;
     procedure Exchange(A, B : Integer);                         virtual;
 
+    property Count                  : Integer           read GetLength;
     property Value[index : integer] : TRedisReturnType  read GetValue
                                                        write SetValue;
   published
@@ -328,6 +330,11 @@ begin
   if FAutoFreeItem then FreeItem(index);
 
   FValues[index] := AValue;
+end;
+
+function TRedisMultiBulkReturnType.GetLength: Integer;
+begin
+  Result := Length(FValues);
 end;
 
 procedure TRedisMultiBulkReturnType.FreeItem(index : integer);
