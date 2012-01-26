@@ -396,14 +396,14 @@ begin
       SetLength(FValues, l+1);
     end
   else begin
-     FreeItem(AIndex);
+     FreeItem(AIndex-1);
   end;
 
   // convert nil to the proper type ...
   if AValue = nil then
-    FValues[AIndex] := TRedisNullReturnType.Create
+    FValues[AIndex-1] := TRedisNullReturnType.Create
   else
-    FValues[AIndex] := AValue;
+    FValues[AIndex-1] := AValue;
 end;
 
 procedure TRedisMultiBulkReturnType.Delete(AIndex: Integer);
