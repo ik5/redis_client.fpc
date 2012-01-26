@@ -1,6 +1,6 @@
 program test_parser;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$B-}
 
 uses
   SysUtils, laz_synapse, rd_protocol, rd_commands, rd_types, strutils
