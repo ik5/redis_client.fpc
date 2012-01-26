@@ -385,25 +385,29 @@ end;
 
 procedure TRedisMultiBulkReturnType.Insert(AIndex: Integer;
   AValue: TRedisReturnType);
-var l : integer;
+var l, idx : integer;
 begin
-  l := Length(FValues);
-  if (AIndex < 0) or (AIndex > l+1) then
+  l   := Length(FValues);
+  idx := AIndex;
+  if (idx < 0) or (idx > l+1) then
      raise EListError.CreateFmt(txtIndexOutOfBounds, [aindex]);
 
-  if AIndex > l then
-    begin
+  // Understand when to add a new item, and when to replace an old one ...
+  if idx > l then
+    begin // Let's add a new item
       SetLength(FValues, l+1);
     end
-  else begin
-     FreeItem(AIndex-1);
+  else begin // Let's replace the current item with a new one
+     FreeItem(idx -1);
   end;
+
+  if idx > 0 then dec(idx); // Our index must be one less then the length
 
   // convert nil to the proper type ...
   if AValue = nil then
-    FValues[AIndex-1] := TRedisNullReturnType.Create
+    FValues[idx] := TRedisNullReturnType.Create
   else
-    FValues[AIndex-1] := AValue;
+    FValues[idx] := AValue;
 end;
 
 procedure TRedisMultiBulkReturnType.Delete(AIndex: Integer);
