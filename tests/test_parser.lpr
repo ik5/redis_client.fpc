@@ -80,7 +80,7 @@ function ParseReturn(const s : string) : TRedisReturnType;
     alength := Length(Aline);
     j       := 2;
     tmps    := '';
-    while (ALine[j] <> #13) and (j <= alength) do
+    while (j <= alength) and (ALine[j] <> #13) do
      begin
        writeln(stderr, Format('[%s] - [%d] [%s]', [tmps, j ,ALine[j]]));
        tmps := tmps + ALine[j]; // Get the length of the item
