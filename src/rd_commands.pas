@@ -36,19 +36,36 @@ unit rd_commands;
 interface
 
 uses
-  Classes, SysUtils, rd_protocol, rd_types, blcksock;
+  Classes, SysUtils, rd_protocol, rd_types, blcksock, eventlog;
+
+type
+
+  { TRedisObject }
+
+  TRedisObject = class(TObject)
+  private
+    flogger : TEventLog;
+  protected
+    procedure Debug(const s : string);                        overload;
+    procedure Debug(const s : string; args : array of const); overload;
+    procedure Error(const s : string);                        overload;
+    procedure Error(const s : string; args : array of const); overload;
+
+  published
+    property Logger : TEventLog read flogger write flogger;
+  end;
 
 type
   { TRedisParser }
 
-  TRedisParser = class(TObject)
+  TRedisParser = class(TRedisObject)
   public
     function GetAnswerType(const s : string) : TRedisAnswerType;
   end;
 
   { TRedisCommands }
 
-  TRedisCommands = class(TObject)
+  TRedisCommands = class(TRedisObject)
   protected
     FIO : TRedisIO;
 
@@ -58,7 +75,7 @@ type
 
   { TRadisDB }
 
-  TRadisDB = class(TObject)
+  TRadisDB = class(TRedisObject)
   protected
     FIO : TRedisIO;
 
@@ -76,6 +93,32 @@ resourcestring
 
 implementation
 
+{ TRedisObject }
+
+procedure TRedisObject.Debug(const s : string);
+begin
+  if Assigned(flogger) then
+    flogger.Debug(s);
+end;
+
+procedure TRedisObject.Debug(const s : string; args : array of const);
+begin
+  if Assigned(flogger) then
+    flogger.Debug(s, args);
+end;
+
+procedure TRedisObject.Error(const s : string);
+begin
+  if Assigned(flogger) then
+    flogger.Error(s);
+end;
+
+procedure TRedisObject.Error(const s : string; args : array of const);
+begin
+  if Assigned(flogger) then
+    flogger.Error(s, args);
+end;
+
 { TRedisParser }
 
 function TRedisParser.GetAnswerType(const s: string): TRedisAnswerType;
@@ -85,6 +128,8 @@ begin
   if s = '' then Exit(ratUnknown);
 
   c := copy(s, 1,1)[1];
+  Debug('GetAnswerType type: %s', [c]);
+
   case c of
     RPLY_SINGLE_CHAR     : Result := ratStatus;
     RPLY_ERROR_CHAR      : Result := ratError;
@@ -100,9 +145,14 @@ end;
 constructor TRedisCommands.Create(AIO: TRedisIO);
 begin
   if Assigned(AIO) then
-    FIO := AIO
-  else
+    begin
+      FIO := AIO;
+      debug('We have IO for commands.');
+    end
+  else begin
+    error('We are missing IO for commands.');
     raise ERedisException.Create(txtMissingIO);
+ end;
 end;
 
 { TRadisDB }
@@ -115,9 +165,14 @@ end;
 constructor TRadisDB.Create(AIO : TRedisIO);
 begin
   if Assigned(AIO) then
-    FIO := AIO
-  else
+    begin
+      FIO := AIO;
+      Debug('We have IO for database');
+    end
+  else begin
+    error('We do not have IO for database.');
     raise ERedisException.Create(txtMissingIO);
+  end;
 end;
 
 end.
