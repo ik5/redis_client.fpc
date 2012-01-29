@@ -3,7 +3,7 @@ program test_parser;
 {$mode objfpc}{$H+}{$B-}
 
 uses
-  SysUtils, laz_synapse, rd_protocol, rd_commands, rd_types, strutils
+  SysUtils, laz_synapse, rd_commands, rd_types
   { you can add units after this };
 
 const
