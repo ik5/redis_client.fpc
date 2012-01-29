@@ -72,7 +72,7 @@ end;
 
 function ParseReturn(const s : string) : TRedisReturnType;
 
-  function GetBulkItem(ALine : String) : TRedisReturnType;
+  function GetBulkItem(ALine : String) : TRedisReturnType; inline;
   var
     alength, j, x : integer;
     tmps          : string;
