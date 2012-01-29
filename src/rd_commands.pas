@@ -102,7 +102,9 @@ type
   end;
 
 resourcestring
-  txtMissingIO        = 'No RedisIO object was provided';
+  txtMissingIO             = 'No RedisIO object was provided';
+  txtUnableToGetItemLength = 'Unable to get proper item length.';
+  txtUnknownString         = 'Unknown string was given : %s';
 
 implementation
 
@@ -162,6 +164,7 @@ function TRedisParser.ParseLine(const s: string): TRedisReturnType;
     alength := Length(Aline);
     j       := 2;
     tmps    := '';
+    Debug('GetBulkItem, alength: %d, j: %d', [alength, j]);
     while (j <= alength) and (ALine[j] <> #13) do
      begin
        tmps := tmps + ALine[j]; // Get the length of the item
@@ -170,30 +173,35 @@ function TRedisParser.ParseLine(const s: string): TRedisReturnType;
 
     if not TryStrToInt(tmps, x) then
       begin
+        Error('GetBulkItem: %s', [txtUnableToGetItemLength]);
         if Assigned(Result) then
           begin
            Result.Free;
            Result := nil;
           end;
-        Raise ERedisException.Create('Unable to get proper item length.');
+        Raise ERedisException.Create(txtUnableToGetItemLength);
       end;
 
     if x = -1 then
       begin
+        debug('GetBulkItem: Length is null');
         Result := TRedisNullReturnType.Create;
         exit;
       end
     else
       Result := TRedisBulkReturnType.Create;
 
+    debug('GetBulkItem: length is %d', [x]);
     inc(j, 2); // go to the next value after #13#10
     // Get the value from the string
     tmps := '';
-    while ((ALine[j] <> #13) and (j <= alength)) or (Length(tmps) = x-1) do
+    while ((j <= alength) and (ALine[j] <> #13)) or (Length(tmps) = x-1) do
      begin
        tmps := tmps + ALine[j];
        inc(j);
      end;
+
+    debug('GetBulkItem: item value [%s]', [tmps]);
 
     Result.Value := tmps;
   end;
@@ -222,6 +230,7 @@ begin
         RPLY_SINGLE_CHAR : Result := TRedisStatusReturnType.Create;
       end;
 
+      Debug('ParseLine: Line type: %s', [Result.ClassName]);
       inc(i);
       while (  i  <= l  ) and
             (s[i] <> #13)     do
@@ -230,24 +239,35 @@ begin
           inc(i);
         end;
 
+      Debug('ParseLine: Item value [%s]', [tmp]);
       Result.Value := tmp;
      end;
-   RPLY_BULK_CHAR       : Result := GetBulkItem(s);
+   RPLY_BULK_CHAR       : begin
+                            Debug('ParseLine: line type: %s',
+                                   ['TRedisBulkReturnType']);
+                            Result := GetBulkItem(s);
+                          end;
    RPLY_MULTI_BULK_CHAR :
      begin
+       Debug('ParseLine: line type: %s', ['TRedisMultiBulkReturnType']);
        list := split_bulk(s);
        if Length(list) > 0 then
          Result := TRedisMultiBulkReturnType.Create
        else begin
+             Debug('ParseLine: no content found for list.');
              Result := TRedisNullReturnType.Create;
              exit;
             end;
 
        for i := Low(list) to high(list) do
-         TRedisMultiBulkReturnType(Result).Add(GetBulkItem(list[i]));
+         begin
+           Debug('ParseLine: list[%d] = [%s]', [i, list[i]]);
+           TRedisMultiBulkReturnType(Result).Add(GetBulkItem(list[i]));
+         end;
      end;
   else
-    raise ERedisException.CreateFmt('Unknown string was given : %s', [s]);
+    Error(txtUnknownString, [s]);
+    raise ERedisException.CreateFmt(txtUnknownString, [s]);
   end;
 end;
 
