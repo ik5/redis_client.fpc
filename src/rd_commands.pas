@@ -88,7 +88,7 @@ type
 
     function ParamsToStr(params : array of const) : String; virtual;
   public
-    constructor Create(AIO : TRedisIO); virtual;
+    constructor Create(AIO : TRedisIO); reintroduce; virtual;
 
     (* Generate a raw command to send.
        Parameters:
@@ -138,7 +138,7 @@ type
 
     function GetSocket: TTCPBlockSocket;
   public
-    constructor Create(AIO : TRedisIO); virtual;
+    constructor Create(AIO : TRedisIO); reintroduce virtual;
 
     property Socket : TTCPBlockSocket read GetSocket;
   published
