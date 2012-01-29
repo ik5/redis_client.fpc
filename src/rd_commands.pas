@@ -61,6 +61,8 @@ type
   TRedisParser = class(TRedisObject)
   public
     function GetAnswerType(const s : string) : TRedisAnswerType;
+  published
+    property Logger;
   end;
 
   { TRedisCommands }
@@ -71,6 +73,8 @@ type
 
   public
     constructor Create(AIO : TRedisIO); virtual;
+  published
+    property Logger;
   end;
 
   { TRadisDB }
@@ -85,7 +89,7 @@ type
 
     property Socket : TTCPBlockSocket read GetSocket;
   published
-
+    property Logger;
   end;
 
 resourcestring
