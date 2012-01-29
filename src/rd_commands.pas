@@ -51,6 +51,8 @@ type
     procedure Error(const s : string);                        overload;
     procedure Error(const s : string; args : array of const); overload;
 
+  public
+    constructor Create;                                       virtual;
   published
     property Logger : TEventLog read flogger write flogger;
   end;
@@ -59,7 +61,7 @@ type
   { TRedisParser }
 
   TRedisParser = class(TRedisObject)
- public
+  public
     type
       TArrStringList = array of string;
   protected
@@ -78,12 +80,54 @@ type
 
   TRedisCommands = class(TRedisObject)
   protected
-    FIO : TRedisIO;
+    FIO        : TRedisIO;
+    FERROR     : Integer;
+    FOnError   : TIOErrorEvent;
+    FBoolTrue,
+    FBoolFalse : String;
 
+    function ParamsToStr(params : array of const) : String; virtual;
   public
     constructor Create(AIO : TRedisIO); virtual;
+
+    (* Generate a raw command to send.
+       Parameters:
+         command - the name of the command to use
+         params  - open array of const of the parameters for the command
+
+       Returns:
+         A string that is ready to be send
+
+       Exception:
+         This function does not handle any exception.
+         You should capture it by yourself.
+     *)
+    function build_raw_command(const command : String;
+                                     params  : array of const) : string; virtual;
+
+    (* Send a command using the socet and return a raw answer
+       Parameters:
+         command - the name of the command to use
+         params  - open array of const of the parameters for the command
+
+       Returns:
+         A raw string that was given by the server
+
+       Exceptions:
+         Does not capture the exception raised
+     *)
+    function send_command(const command : String;
+                                params  : array of const) : string; virtual;
   published
+    // The string for boolean false value
+    property BoolFalse : String    read FBoolFalse write FBoolFalse;
+    // The string for boolean true value
+    property BoolTrue  : String    read FBoolTrue  write FBoolTrue;
+    property ErrorCode : Integer read FError write FError;
     property Logger;
+
+    property OnError   : TIOErrorEvent  read FOnError
+                                       write FOnError;
   end;
 
   { TRadisDB }
@@ -132,6 +176,11 @@ procedure TRedisObject.Error(const s : string; args : array of const);
 begin
   if Assigned(flogger) then
     flogger.Error(s, args);
+end;
+
+constructor TRedisObject.Create;
+begin
+  flogger := nil;
 end;
 
 { TRedisParser }
@@ -319,6 +368,172 @@ begin
     error('We are missing IO for commands.');
     raise ERedisException.Create(txtMissingIO);
  end;
+
+  FError     := ERROR_OK;
+  FBoolFalse := 'false';
+  FBoolTrue  := 'true';
+
+  inherited Create; // Call parent create
+end;
+
+function TRedisCommands.ParamsToStr(params: array of const): String;
+var i : integer;
+
+const
+  cCOMMAND = CMD_PARAMS_LENGTH + '%d' + CRLF + '%s' + CRLF;
+
+function ValueToLine(AValue : String) : String; inline;
+var
+  l : integer;
+begin
+  l := Length(AValue);
+
+  Debug('Have value of [%s], length : %d', [AValue, l]);
+
+  if AValue = '' then
+   Result := Format(cCOMMAND, [-1, ''])
+  else
+   Result := Format(cCOMMAND, [l, AValue]);
+end;
+
+function SToLine : String; inline;
+begin Result := ValueToLine(params[i].VPChar); end;
+
+function SSToLine : String; inline;
+begin Result := ValueToLine(params[i].VString^); end;
+
+function CToLine : String; inline;
+begin Result := ValueToLine(params[i].VChar); end;
+
+function BToLine : String; inline;
+begin
+  Result := ValueToLine(BoolToStr(params[i].VBoolean, FBoolTrue,
+                                                      FBoolFalse));
+end;
+
+function IToLine : String; inline;
+begin Result := ValueToLine(IntToStr(params[i].VInteger)); end;
+
+function I64ToLine : String; inline;
+begin Result := ValueToLine(IntToStr(params[i].VInt64^)); end;
+
+function QToLine : String; inline;
+begin Result := ValueToLine(IntToStr(params[i].VQWord^)); end;
+
+function CUToLine : String; inline;
+begin Result := ValueToLine(CurrToStr(params[i].VCurrency^)); end;
+
+function EToLine : String; inline;
+begin Result := ValueToLine(FloatToStr(params[i].VExtended^)); end;
+
+var
+  line    : String;
+  Handled : Boolean;
+begin
+  Result := '';
+  for i := Low(Params) to High(Params) do
+   begin
+     Debug('On index %d, with type %d', [i, params[i].VType]);
+     case params[i].VType of
+       vtInteger    : Line := IToLine;
+       vtInt64      : line := I64ToLine;
+       vtCurrency   : line := CUToLine;
+       vtExtended   : line := EToLine;
+       vtBoolean    : line := BToLine;
+       vtChar       : line := CToLine;
+       vtString     : line := SSToLine;
+       vtPChar,
+       vtAnsiString : line := SToLine;
+       else begin
+             line    := '';
+             Handled := false;
+             FError  := ERROR_UKNOWN_PARAM;
+             Error(txtUnsupportedParam,
+                    [params[i].VType, i]);
+
+             if Assigned(FOnError) then
+              FOnError(self, Handled);
+
+             if not Handled then
+              begin
+                raise ERedisIOException.CreateFmt(txtUnsupportedParam,
+                    [params[i].VType, i]);
+              end;
+            end;
+       end; // case
+     Result := Result + line;
+   end;
+
+  FError := ERROR_OK;
+end;
+
+function TRedisCommands.build_raw_command(const command : String;
+  params: array of const): string;
+var
+  cmd     : string;
+  l       : integer;
+  Handled : Boolean;
+begin
+  if command = '' then
+   begin
+     Error(txtEmptyCommandWasGiven);
+     Handled := false;
+     FError  := ERROR_EMPTY_COMMAND;
+     if Assigned(FOnError) then
+      FOnError(self, Handled);
+
+     if not Handled then
+      raise ERedisIOException.Create(txtEmptyCommandWasGiven)
+     else begin
+       Result := '';
+       exit;
+     end;
+   end;
+
+  l      := Length(params);
+  Debug('Have #%d params', [l]);
+  Result := Format('%s%d%s' , [CMD_PARAMS_CHAR, l+1, CRLF]);
+  Result := Result + Format('%s%d%s%s%s', [CMD_PARAMS_LENGTH, Length(command),
+                                       CRLF, command, CRLF]);
+  Debug('Command : %s', [Result]);
+
+  if l > 0 then
+   begin
+    cmd := ParamsToStr(params);
+    Debug('Have parametes: %s', [cmd]);
+    Result := Result + cmd;
+   end
+  else begin
+    Debug('No parameters');
+  end;
+
+  Debug('Full command : [%s]', [Result]);
+  FError := ERROR_OK;
+end;
+
+function TRedisCommands.send_command(const command: String;
+  params: array of const): string;
+var cmd     : string;
+    Handled : Boolean;
+begin
+ if command = '' then
+   begin
+     Error(txtEmptyCommandWasGiven);
+     Handled := false;
+     FError  := ERROR_EMPTY_COMMAND;
+     if Assigned(FOnError) then
+      FOnError(self, Handled);
+
+     if not Handled then
+      raise ERedisIOException.Create(txtEmptyCommandWasGiven)
+     else begin
+       Result := '';
+       exit;
+     end;
+   end;
+
+ cmd    := build_raw_command(command, params);
+ Result := FIO.raw_send_command(cmd);
 end;
 
 { TRadisDB }
@@ -339,6 +554,8 @@ begin
     error('We do not have IO for database.');
     raise ERedisException.Create(txtMissingIO);
   end;
+
+  inherited Create;
 end;
 
 end.

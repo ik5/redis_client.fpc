@@ -92,15 +92,11 @@ type
 
   TRedisIO = class(TSynaClient)
   protected
-    FBoolFalse    : String;
-    FBoolTrue     : String;
     FError        : Longint;
     FLog          : TEventLog;
     FOnError      : TIOErrorEvent;
     FAfterConnect : THookAfterConnect;
     FSock         : TTCPBlockSocket;
-
-    function ParamsToStr(params : array of const) : String; virtual;
 
     // Try to detect if the socket is open for connection
     function IsConnected : Boolean;
@@ -120,21 +116,6 @@ type
     procedure Disconnect; virtual;
     procedure Abort;      virtual;
 
-    (* Generate a raw command to send.
-       Parameters:
-         command - the name of the command to use
-         params  - open array of const of the parameters for the command
-
-       Returns:
-         A string that is ready to be send
-
-       Exception:
-         This function does not handle any exception.
-         You should capture it by yourself.
-     *)
-    function build_raw_command(const command : String;
-                                     params  : array of const) : string; virtual;
-
     (* Sends a string and get answer
        Parameters:
          s - The string to send
@@ -147,20 +128,6 @@ type
      *)
     function raw_send_command(const s : string) : string; virtual;
 
-    (* Send a command using the socet and return a raw answer
-       Parameters:
-         command - the name of the command to use
-         params  - open array of const of the parameters for the command
-
-       Returns:
-         A raw string that was given by the server
-
-       Exceptions:
-         Does not capture the exception raised
-     *)
-    function send_command(const command : String;
-                                params  : array of const) : string; virtual;
-
     // Try to understand if the socket is open for connection
     property Connected : Boolean         read IsConnected;
 
@@ -170,9 +137,6 @@ type
     // Get the socket that is used for this class
     property Socket    : TTCPBlockSocket read FSock;
   published
-    property BoolFalse : String    read FBoolFalse write FBoolFalse;
-    // The string for boolean true value
-    property BoolTrue  : String    read FBoolTrue  write FBoolTrue;
     // Allow to store log (mostly for debug purpose)
     property Log       : TEventLog read FLog       write FLog;
 
@@ -202,96 +166,6 @@ begin
   Result := FSock.Socket = NOT(0);
   if Result then
      Result := FSock.CanRead(0) and FSock.CanWrite(0);
-end;
-
-function TRedisIO.ParamsToStr(params: array of const): String;
-var i : integer;
-
-const
-  cCOMMAND = CMD_PARAMS_LENGTH + '%d' + CRLF + '%s' + CRLF;
-
-function ValueToLine(AValue : String) : String; inline;
-var
-  l : integer;
-begin
-  l := Length(AValue);
-
-  lDebug('Have value of [%s], length : %d', [AValue, l]);
-
-  if AValue = '' then
-   Result := Format(cCOMMAND, [-1, ''])
-  else
-   Result := Format(cCOMMAND, [l, AValue]);
-end;
-
-function SToLine : String; inline;
-begin Result := ValueToLine(params[i].VPChar); end;
-
-function SSToLine : String; inline;
-begin Result := ValueToLine(params[i].VString^); end;
-
-function CToLine : String; inline;
-begin Result := ValueToLine(params[i].VChar); end;
-
-function BToLine : String; inline;
-begin
-  Result := ValueToLine(BoolToStr(params[i].VBoolean, FBoolTrue, FBoolFalse));
-end;
-
-function IToLine : String; inline;
-begin Result := ValueToLine(IntToStr(params[i].VInteger)); end;
-
-function I64ToLine : String; inline;
-begin Result := ValueToLine(IntToStr(params[i].VInt64^)); end;
-
-function QToLine : String; inline;
-begin Result := ValueToLine(IntToStr(params[i].VQWord^)); end;
-
-function CUToLine : String; inline;
-begin Result := ValueToLine(CurrToStr(params[i].VCurrency^)); end;
-
-function EToLine : String; inline;
-begin Result := ValueToLine(FloatToStr(params[i].VExtended^)); end;
-
-var
-  line    : String;
-  Handled : Boolean;
-begin
-  Result := '';
-  for i := Low(Params) to High(Params) do
-   begin
-     lDebug('On index %d, with type %d', [i, params[i].VType]);
-     case params[i].VType of
-       vtInteger    : Line := IToLine;
-       vtInt64      : line := I64ToLine;
-       vtCurrency   : line := CUToLine;
-       vtExtended   : line := EToLine;
-       vtBoolean    : line := BToLine;
-       vtChar       : line := CToLine;
-       vtString     : line := SSToLine;
-       vtPChar,
-       vtAnsiString : line := SToLine;
-       else begin
-             line    := '';
-             Handled := false;
-             FError  := ERROR_UKNOWN_PARAM;
-             lError(txtUnsupportedParam,
-                    [params[i].VType, i]);
-
-             if Assigned(FOnError) then
-              FOnError(self, Handled);
-
-             if not Handled then
-              begin
-                raise ERedisIOException.CreateFmt(txtUnsupportedParam,
-                    [params[i].VType, i]);
-              end;
-            end;
-       end; // case
-     Result := Result + line;
-   end;
-
-  FError := ERROR_OK;
 end;
 
 procedure TRedisIO.DoOpenConnection;
@@ -356,8 +230,6 @@ begin
   FTargetHost          := DEFUALT_ADDRESS;
   FTargetPort          := IntToStr(DEFAULT_PORT);
   FTimeout             := DEFAULT_TIMEOUT;
-  FBoolFalse           := 'false';
-  FBoolTrue            := 'true';
 
   FLog                 := nil;
   FError               := ERROR_OK;
@@ -387,75 +259,6 @@ end;
 procedure TRedisIO.Abort;
 begin
   FSock.StopFlag := true;
-end;
-
-function TRedisIO.build_raw_command(const command : String;
-  params: array of const): string;
-var
-  cmd     : string;
-  l       : integer;
-  Handled : Boolean;
-begin
-  if command = '' then
-   begin
-     lError(txtEmptyCommandWasGiven);
-     Handled := false;
-     FError  := ERROR_EMPTY_COMMAND;
-     if Assigned(FOnError) then
-      FOnError(self, Handled);
-
-     if not Handled then
-      raise ERedisIOException.Create(txtEmptyCommandWasGiven)
-     else begin
-       Result := '';
-       exit;
-     end;
-   end;
-
-  l      := Length(params);
-  lDebug('Have #%d params', [l]);
-  Result := Format('%s%d%s' , [CMD_PARAMS_CHAR, l+1, CRLF]);
-  Result := Result + Format('%s%d%s%s%s', [CMD_PARAMS_LENGTH, Length(command),
-                                       CRLF, command, CRLF]);
-  lDebug('Command : %s', [Result]);
-
-  if l > 0 then
-   begin
-    cmd := ParamsToStr(params);
-    lDebug('Have parametes: %s', [cmd]);
-    Result := Result + cmd;
-   end
-  else begin
-    lDebug('No parameters');
-  end;
-
-  lDebug('Full command : [%s]', [Result]);
-  FError := ERROR_OK;
-end;
-
-function TRedisIO.send_command(const command: String;
-  params: array of const): string;
-var cmd     : string;
-    Handled : Boolean;
-begin
- if command = '' then
-   begin
-     lError(txtEmptyCommandWasGiven);
-     Handled := false;
-     FError  := ERROR_EMPTY_COMMAND;
-     if Assigned(FOnError) then
-      FOnError(self, Handled);
-
-     if not Handled then
-      raise ERedisIOException.Create(txtEmptyCommandWasGiven)
-     else begin
-       Result := '';
-       exit;
-     end;
-   end;
-
- cmd    := build_raw_command(command, params);
- Result := raw_send_command(cmd);
 end;
 
 function TRedisIO.raw_send_command(const s : string) : String;
