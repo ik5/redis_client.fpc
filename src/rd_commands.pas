@@ -155,7 +155,10 @@ type
      *)
     function send_command2(const command : String;
                                  params  : array of const) : TRedisReturnType;
-                                                                        virtual;
+                                                              overload; virtual;
+
+    function send_command2(const command : String) : TRedisReturnType;
+                                                              overload; virtual;
 
     property Socket : TTCPBlockSocket read GetSocket;
   published
@@ -755,6 +758,11 @@ begin
        raise ERedisException.Create(e.Message);
      end;
   end;
+end;
+
+function TRedisCommands.send_command2(const command: String): TRedisReturnType;
+begin
+  Result := send_command2(command, []);
 end;
 
 end.
