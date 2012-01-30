@@ -8,40 +8,46 @@ uses
 
 var
   IO      : TRedisIO;
-  RedisDB : TRedisDB;
   return  : TRedisReturnType;
 
+procedure print_return(const command : String);
 begin
-  IO            := TRedisIO.Create;
+  writeln(Command, ' ', return.Value, ' ', return.ReturnType);
+  return.Free;
+end;
+
+procedure test_db;
+var RedisDB : TRedisDB;
+begin
   RedisDB       := TRedisDB.Create(IO);
   IO.Connect;
-  return        := RedisDB.Ping;
 
-  writeln('Ping ', return.Value, ' ', return.ReturnType);
-  return.Free;
+  return        := RedisDB.Ping;
+  print_return('ping');
 
   return := RedisDB.Auth('foobare');
-  writeln('Auth ', return.Value, ' ', return.ReturnType);
-  return.Free;
+  print_return('Auth');
 
   return := RedisDB.Select(1);
-  writeln('Select ', return.Value, ' ', return.ReturnType);
-  return.Free;
+  print_return('Select');
 
   return := RedisDB.Echo('Hello World');
-  writeln('Echo ', return.Value, ' ', return.ReturnType);
-  return.Free;
+  print_return('Echo');
 
   return := RedisDB.Echo('"Hello"W"orld');
-  writeln('Echo ', return.Value, ' ', return.ReturnType);
-  return.Free;
+  print_return('Echo');
 
 
   // Test Last !
   return := RedisDB.Quit;
-  writeln('Quit ', return.Value, ' ', return.ReturnType);
-  return.Free;
+  print_return('Quit');
   RedisDB.Free;
+end;
+
+begin
+  IO            := TRedisIO.Create;
+  test_db;
+
   IO.Disconnect;
   IO.Free;
 end.
