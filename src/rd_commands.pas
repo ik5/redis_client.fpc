@@ -71,6 +71,25 @@ type
     function GetAnswerType(const s : string) : TRedisAnswerType;
 
     {%TODO: Make this better and more efficient and safe}
+    (*
+        Convert proper redis string to TRedisAnswerType
+        Parameters:
+         * s - The string to be parsed
+
+        Returns:
+          * TRedisReturnType - based class or nil if something went wrong but no
+                               execption was raised
+
+        Exceptions:
+          * ERedisException - raise exception when some unexpected char was
+                              given or the given string is not a valid redis
+                              string.
+
+        Note:
+          This function does not know how to handle multiple requests.
+          It will work only with single request, and will ignore or raise
+          exception on multiple requests.
+     *)
     function ParseLine(const s : string) : TRedisReturnType;
   published
     property Logger;
