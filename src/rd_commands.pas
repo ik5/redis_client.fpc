@@ -268,10 +268,16 @@ type
     property OnError;
   end;
 
+  { TRedisServer }
+
   TRedisServer = class(TRedisCommands)
   public
     property Socket;
 
+    (*
+
+     *)
+    function BGRewriteAOF : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -285,6 +291,13 @@ resourcestring
   txtUnknownString         = 'Unknown string was given : %s';
 
 implementation
+
+{ TRedisServer }
+
+function TRedisServer.BGRewriteAOF: TRedisReturnType;
+begin
+  Result := send_command2('BGREWRITEAOF', []);
+end;
 
 { TRedisConnection }
 
