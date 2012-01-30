@@ -77,6 +77,7 @@ const
  ERROR_EMPTY_COMMAND       = 3; // The given command is empty
  ERROR_CANNOT_SEND_COMMAND = 4; // Socket error while sending command
  ERROR_CANNOT_READ_ANSWER  = 5; // Socket error while reading command
+ ERROR_BAD_COMMAND         = 6; // Something wrong with the returned command
 
 type
 

@@ -142,6 +142,10 @@ type
     function send_command(const command : String;
                                 params  : array of const) : string; virtual;
 
+    function send_command2(const command : String;
+                                 params  : array of const) : TRedisReturnType;
+                                                                        virtual;
+
     property Socket : TTCPBlockSocket read GetSocket;
   published
     // The string for boolean false value
@@ -590,6 +594,29 @@ begin
 
  cmd    := build_raw_command(command, params);
  Result := FIO.raw_send_command(cmd);
+end;
+
+function TRedisCommands.send_command2(const command: String;
+  params: array of const): TRedisReturnType;
+var return  : string;
+    handled : Boolean;
+begin
+  return := send_command(command, params);
+  try
+    Result := FRedisParser.ParseLine(return);
+  except
+    Result  := nil;
+    Handled := false;
+    on E:ERedisException do
+     begin
+      FError := ERROR_BAD_COMMAND;
+      if Assigned(FOnError) then
+       FOnError(self handled);
+
+      if not handled then
+       raise ERedisException.Create(e.Message);
+     end;
+  end;
 end;
 
 end.
