@@ -36,6 +36,11 @@ begin
   writeln('Echo ', return.Value, ' ', return.ReturnType);
   return.Free;
 
+
+  // Test Last !
+  return := RedisDB.Quit;
+  writeln('Quit ', return.Value, ' ', return.ReturnType);
+  return.Free;
   RedisDB.Free;
   IO.Disconnect;
   IO.Free;
