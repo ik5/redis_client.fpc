@@ -249,7 +249,16 @@ type
     function Echo(const S : String) : TRedisReturnType; virtual;
 
     (*
+      Ask the server to close the connection. The connection is closed as soon
+      as all pending replies have been written to the client.
 
+      Returns:
+       * TRedisStatusReturnType on success
+       * nil on exception
+
+      Exceptions:
+       * ERedisException - When something went wrong in the parsing or with
+                           the socket
      *)
     function Quit : TRedisReturnType;                   virtual;
   published
