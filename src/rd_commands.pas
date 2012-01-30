@@ -521,8 +521,6 @@ end;
 destructor TRedisCommands.Destroy;
 begin
   FreeAndNil(FRedisParser);
-  FIO.Disconnect;
-  FIO.Free;
   inherited Destroy;
 end;
 
