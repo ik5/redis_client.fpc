@@ -16,37 +16,37 @@ begin
   return.Free;
 end;
 
-procedure test_db;
-var RedisDB : TRedisConnection;
+procedure test_connection;
+var RedisConnection : TRedisConnection;
 begin
-  RedisDB       := TRedisConnection.Create(IO);
+  RedisConnection       := TRedisConnection.Create(IO);
   IO.Connect;
 
-  return        := RedisDB.Ping;
+  return        := RedisConnection.Ping;
   print_return('ping');
 
-  return := RedisDB.Auth('foobare');
+  return := RedisConnection.Auth('foobare');
   print_return('Auth');
 
-  return := RedisDB.Select(1);
+  return := RedisConnection.Select(1);
   print_return('Select');
 
-  return := RedisDB.Echo('Hello World');
+  return := RedisConnection.Echo('Hello World');
   print_return('Echo');
 
-  return := RedisDB.Echo('"Hello"W"orld');
+  return := RedisConnection.Echo('"Hello"W"orld');
   print_return('Echo');
 
 
   // Test Last !
-  return := RedisDB.Quit;
+  return := RedisConnection.Quit;
   print_return('Quit');
-  RedisDB.Free;
+  RedisConnection.Free;
 end;
 
 begin
   IO            := TRedisIO.Create;
-  test_db;
+  test_connection;
 
   IO.Disconnect;
   IO.Free;
