@@ -182,7 +182,7 @@ function TRadisDB.Auth(const APass: String): TRedisReturnType;
 var return : string;
 begin
   return := send_command('AUTH', [APass]);
-
+  Result := FRedisParser.ParseLine(return);
 end;
 
 { TRedisObject }
