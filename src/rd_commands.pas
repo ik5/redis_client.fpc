@@ -137,11 +137,22 @@ type
          A raw string that was given by the server
 
        Exceptions:
-         Does not capture the exception raised
+         Does not capture any raised exception
      *)
     function send_command(const command : String;
                                 params  : array of const) : string; virtual;
 
+    (* Send a command using the socket and return a TRedisReturnType
+       Parameters:
+         command - the name of the command to use
+         params  - open array of const of the parameters for the command
+
+       Returns:
+         A TRedisReturnType value, or nil if exception was raised.
+
+       Exceptions:
+         Does not capture any raised exception
+     *)
     function send_command2(const command : String;
                                  params  : array of const) : TRedisReturnType;
                                                                         virtual;
