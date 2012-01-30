@@ -284,7 +284,7 @@ begin
     exit;
   end;
 
- Result := FSock.RecvString(FTimeout);
+ Result := FSock.RecvPacket(FTimeout);
 
  if FSock.LastError <> 0 then
   begin
