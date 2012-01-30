@@ -289,7 +289,19 @@ type
     property Socket;
 
     (*
+       Rewrites the append-only
+       (http://redis.io/topics/persistence#append-only-file)
+       file to reflect the current dataset in memory.
+       If BGREWRITEAOF fails, no data gets lost as the old AOF will be
+       untouched.
 
+       Returns:
+        * TRedisStatusReturnType on success
+        * nil on exception
+
+       Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
      *)
     function BGRewriteAOF : TRedisReturnType; virtual;
   published
