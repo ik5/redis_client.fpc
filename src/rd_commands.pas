@@ -189,13 +189,13 @@ type
          APass - A single password to send
 
        Returns:
-         TRedisStatusReturnType on success
-         TRedisErrorReturnType on faliur
-         nil if there was an exception
+        * TRedisStatusReturnType on success
+        * TRedisErrorReturnType on failure
+        * nil if there was an exception
 
        Exceptions:
-         ERedisException - When something went wrong in the parsing or with
-                           the socket
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
      *)
     function Auth(const APass : String) : TRedisReturnType; virtual;
 
@@ -204,16 +204,31 @@ type
        measure latency. Returns PONG
 
        Returns:
-         TRedisStatusReturnType on success
-         nil on exception
+        * TRedisStatusReturnType on success
+        * nil on exception
 
        Exceptions:
-         ERedisException - When something went wrong in the parsing or with
-                           the socket
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
      *)
     function Ping : TRedisReturnType; virtual;
 
     (*
+       Set the number of databases. The default database is DB 0, you can
+       select a different one on a per-connection basis using SELECT <db> where
+       db is a number between 0 and 'databases'-1 in the configuration file.
+
+      Parameters:
+        * db - a Numeric number of the databases.
+
+      Returns:
+        * TRedisStatusReturnType on success
+        * TRedisErrorReturnType on failure
+        * nil on exception
+
+      Exceptions:
+       * ERedisException - When something went wrong in the parsing or with
+                           the socket
      *)
     function Select(db : Word = 0) : TRedisReturnType; virtual;
   published
