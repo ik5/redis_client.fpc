@@ -22,7 +22,7 @@ begin
   writeln('Ping ', return.Value, ' ', return.ReturnType);
   return.Free;
 
-  return := RedisDB.Auth('foobared');
+  return := RedisDB.Auth('foobare');
   writeln('Auth ', return.Value, ' ', return.ReturnType);
   return.Free;
 
