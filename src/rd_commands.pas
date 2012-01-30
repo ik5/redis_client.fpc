@@ -157,6 +157,17 @@ type
                                  params  : array of const) : TRedisReturnType;
                                                               overload; virtual;
 
+    (*
+       Send a command using the socket and return a TRedisReturnType
+       Parameters:
+         command - the name of the command to use
+
+       Returns:
+         A TRedisReturnType value, or nil if exception was raised.
+
+       Exceptions:
+         Does not capture any raised exception
+     *)
     function send_command2(const command : String) : TRedisReturnType;
                                                               overload; virtual;
 
