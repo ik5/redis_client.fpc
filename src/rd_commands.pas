@@ -193,16 +193,25 @@ type
          TRedisErrorReturnType on faliur
          nil if there was an exception
 
-       Eceptions:
+       Exceptions:
          ERedisException - When something went wrong in the parsing or with
                            the socket
-
      *)
     function Auth(const APass : String) : TRedisReturnType; virtual;
 
     (*
+       This command is often used to test if a connection is still alive, or to
+       measure latency. Returns PONG
+
+       Returns:
+         TRedisBulkReturnType on success
+         nil on exception
+
+       Exceptions:
+         ERedisException - When something went wrong in the parsing or with
+                           the socket
      *)
-    function Ping                       : TRedisReturnType; virtual;
+    function Ping : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
