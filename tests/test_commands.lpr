@@ -7,11 +7,14 @@ uses
   { you can add units after this };
 
 var
+  IO      : TRedisIO;
   RedisDB : TRedisDB;
   return  : TRedisReturnType;
 
 begin
-  RedisDB       := TRedisDB.Create;
+  IO            := TRedisIO.Create;
+  RedisDB       := TRedisDB.Create(IO);
+  IO.Connect;
   return        := RedisDB.Ping;
 
   writeln('Ping ', return.Value, ' ', return.ReturnType);
@@ -34,5 +37,7 @@ begin
   return.Free;}
 
   RedisDB.Free;
+  IO.Disconnect;
+  IO.Free;
 end.
 
