@@ -159,6 +159,7 @@ type
   public
     property Socket;
 
+    function Auth(const APass : String) : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -172,6 +173,15 @@ resourcestring
   txtUnknownString         = 'Unknown string was given : %s';
 
 implementation
+
+{ TRadisDB }
+
+function TRadisDB.Auth(const APass: String): TRedisReturnType;
+var return : string;
+begin
+  return := send_command('AUTH', [APass]);
+
+end;
 
 { TRedisObject }
 
@@ -572,8 +582,6 @@ begin
  cmd    := build_raw_command(command, params);
  Result := FIO.raw_send_command(cmd);
 end;
-
-{ TRadisDB }
 
 end.
 
