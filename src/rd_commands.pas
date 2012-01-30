@@ -212,6 +212,10 @@ type
                            the socket
      *)
     function Ping : TRedisReturnType; virtual;
+
+    (*
+     *)
+    function Select(db : Word = 0) : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -236,6 +240,11 @@ end;
 function TRedisDB.Ping: TRedisReturnType;
 begin
   Result := send_command2('PING', []);
+end;
+
+function TRedisDB.Select(db : Word = 0): TRedisReturnType;
+begin
+  Result := send_command2('SELECT', [db]);
 end;
 
 { TRedisObject }
