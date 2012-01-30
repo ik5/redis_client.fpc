@@ -32,9 +32,9 @@ begin
   writeln('Echo ', return.Value, ' ', return.ReturnType);
   return.Free;
 
-  {return := RedisDB.Echo('Hello"World');
+  return := RedisDB.Echo('"Hello"W"orld');
   writeln('Echo ', return.Value, ' ', return.ReturnType);
-  return.Free;}
+  return.Free;
 
   RedisDB.Free;
   IO.Disconnect;
