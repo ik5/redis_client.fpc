@@ -170,9 +170,9 @@ type
                                        write FOnError;
   end;
 
-  { TRadisDB }
+  { TRedisDB }
 
-  TRadisDB = class(TRedisCommands)
+  TRedisDB = class(TRedisCommands)
   public
     property Socket;
 
@@ -184,7 +184,6 @@ type
        replies with the OK status code and starts accepting commands.
        Otherwise, an error is returned and the clients needs to try a new
        password.
-
 
        Parameters:
          APass - A single password to send
@@ -200,6 +199,10 @@ type
 
      *)
     function Auth(const APass : String) : TRedisReturnType; virtual;
+
+    (*
+     *)
+    function Ping                       : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -214,11 +217,16 @@ resourcestring
 
 implementation
 
-{ TRadisDB }
+{ TRedisDB }
 
-function TRadisDB.Auth(const APass: String): TRedisReturnType;
+function TRedisDB.Auth(const APass: String): TRedisReturnType;
 begin
   Result := send_command2('AUTH', [APass]);
+end;
+
+function TRedisDB.Ping: TRedisReturnType;
+begin
+  Result := send_command2('PING', []);
 end;
 
 { TRedisObject }
