@@ -170,9 +170,9 @@ type
                                        write FOnError;
   end;
 
-  { TRedisDB }
+  { TRedisConnection }
 
-  TRedisDB = class(TRedisCommands)
+  TRedisConnection = class(TRedisCommands)
   public
     property Socket;
 
@@ -275,29 +275,29 @@ resourcestring
 
 implementation
 
-{ TRedisDB }
+{ TRedisConnection }
 
-function TRedisDB.Auth(const APass: String): TRedisReturnType;
+function TRedisConnection.Auth(const APass: String): TRedisReturnType;
 begin
   Result := send_command2('AUTH', [APass]);
 end;
 
-function TRedisDB.Ping: TRedisReturnType;
+function TRedisConnection.Ping: TRedisReturnType;
 begin
   Result := send_command2('PING', []);
 end;
 
-function TRedisDB.Select(db : Word = 0): TRedisReturnType;
+function TRedisConnection.Select(db : Word = 0): TRedisReturnType;
 begin
   Result := send_command2('SELECT', [db]);
 end;
 
-function TRedisDB.Echo(const S: String): TRedisReturnType;
+function TRedisConnection.Echo(const S: String): TRedisReturnType;
 begin
   Result := send_command2('ECHO', [s]);
 end;
 
-function TRedisDB.Quit: TRedisReturnType;
+function TRedisConnection.Quit: TRedisReturnType;
 begin
   Result := send_command2('QUIT', []);
 end;

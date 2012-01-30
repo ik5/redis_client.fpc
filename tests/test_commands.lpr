@@ -17,9 +17,9 @@ begin
 end;
 
 procedure test_db;
-var RedisDB : TRedisDB;
+var RedisDB : TRedisConnection;
 begin
-  RedisDB       := TRedisDB.Create(IO);
+  RedisDB       := TRedisConnection.Create(IO);
   IO.Connect;
 
   return        := RedisDB.Ping;
