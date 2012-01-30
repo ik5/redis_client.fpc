@@ -143,10 +143,10 @@ type
     property Socket : TTCPBlockSocket read GetSocket;
   published
     // The string for boolean false value
-    property BoolFalse : String    read FBoolFalse write FBoolFalse;
+    property BoolFalse : String  read FBoolFalse write FBoolFalse;
     // The string for boolean true value
-    property BoolTrue  : String    read FBoolTrue  write FBoolTrue;
-    property ErrorCode : Integer read FError write FError;
+    property BoolTrue  : String  read FBoolTrue  write FBoolTrue;
+    property ErrorCode : Integer read FError     write FError;
     property Logger;
 
     property OnError   : TIOErrorEvent  read FOnError
