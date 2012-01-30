@@ -245,12 +245,6 @@ type
       Exceptions:
        * ERedisException - When something went wrong in the parsing or with
                            the socket
-
-      Note:
-        The command is looking for one parameter, so the string is quotes
-        inside the command with the " sign.
-        There is no need to quote the string, but if you have a " sign inside
-        the string it must be double quoted prior in sending it to this command!
      *)
     function Echo(const S : String) : TRedisReturnType; virtual;
   published
@@ -286,7 +280,7 @@ end;
 
 function TRedisDB.Echo(const S: String): TRedisReturnType;
 begin
-  Result := send_command2('ECHO', ['"' + s + '"']);
+  Result := send_command2('ECHO', [s]);
 end;
 
 { TRedisObject }
