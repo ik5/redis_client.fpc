@@ -24,7 +24,7 @@ begin
   Log.Active           := true;
   redis.Log            := Log;
   redis.Connect;
-  cmd                  := command.build_raw_command('ECHO', ['Hello World']);
+  cmd                  := command.build_raw_command('ECHO', ['"Hello World"']);
   answer               := redis.raw_send_command(cmd);
   writeln(answer);
   redis.Disconnect;
