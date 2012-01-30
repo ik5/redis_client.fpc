@@ -106,6 +106,7 @@ type
     FBoolFalse : String;
 
     function ParamsToStr(params : array of const) : String; virtual;
+    function GetSocket: TTCPBlockSocket;
   public
     constructor Create(AIO : TRedisIO); reintroduce; virtual;
 
@@ -137,6 +138,8 @@ type
      *)
     function send_command(const command : String;
                                 params  : array of const) : string; virtual;
+
+    property Socket : TTCPBlockSocket read GetSocket;
   published
     // The string for boolean false value
     property BoolFalse : String    read FBoolFalse write FBoolFalse;
@@ -151,15 +154,9 @@ type
 
   { TRadisDB }
 
-  TRadisDB = class(TRedisObject)
-  protected
-    FIO : TRedisIO;
-
-    function GetSocket: TTCPBlockSocket;
+  TRadisDB = class(TRedisCommands)
   public
-    constructor Create(AIO : TRedisIO); reintroduce virtual;
-
-    property Socket : TTCPBlockSocket read GetSocket;
+    property Socket;
   published
     property Logger;
   end;
@@ -486,6 +483,11 @@ begin
   FError := ERROR_OK;
 end;
 
+function TRedisCommands.GetSocket : TTCPBlockSocket;
+begin
+ Result := FIO.Socket;
+end;
+
 function TRedisCommands.build_raw_command(const command : String;
   params: array of const): string;
 var
@@ -556,26 +558,6 @@ begin
 end;
 
 { TRadisDB }
-
-function TRadisDB.GetSocket : TTCPBlockSocket;
-begin
- Result := FIO.Socket;
-end;
-
-constructor TRadisDB.Create(AIO : TRedisIO);
-begin
-  if Assigned(AIO) then
-    begin
-      FIO := AIO;
-      Debug('We have IO for database');
-    end
-  else begin
-    error('We do not have IO for database.');
-    raise ERedisException.Create(txtMissingIO);
-  end;
-
-  inherited Create;
-end;
 
 end.
 
