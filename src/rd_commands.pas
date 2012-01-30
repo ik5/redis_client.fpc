@@ -194,7 +194,6 @@ implementation
 { TRadisDB }
 
 function TRadisDB.Auth(const APass: String): TRedisReturnType;
-var return : string;
 begin
   Result := send_command2('AUTH', [APass]);
 end;
@@ -615,13 +614,13 @@ begin
   try
     Result := FRedisParser.ParseLine(return);
   except
-    Result  := nil;
-    Handled := false;
     on E:ERedisException do
      begin
+      Result  := nil;
+      Handled := false;
       FError := ERROR_BAD_COMMAND;
       if Assigned(FOnError) then
-       FOnError(self handled);
+       FOnError(self, handled);
 
       if not handled then
        raise ERedisException.Create(e.Message);
