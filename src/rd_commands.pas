@@ -107,6 +107,7 @@ type
 
     function ParamsToStr(params : array of const) : String; virtual;
     function GetSocket: TTCPBlockSocket;
+    procedure RedisIOErrorEvent(Sender : TObject; var Handled : Boolean);
   public
     constructor Create(AIO : TRedisIO); reintroduce; virtual;
 
@@ -389,9 +390,12 @@ begin
     raise ERedisException.Create(txtMissingIO);
  end;
 
-  FError     := ERROR_OK;
-  FBoolFalse := 'false';
-  FBoolTrue  := 'true';
+  FError      := ERROR_OK;
+  FBoolFalse  := 'false';
+  FBoolTrue   := 'true';
+
+  FIO.OnError := {$IFDEF FPC}@{$ENDIF}
+                   RedisIOErrorEvent;
 
   inherited Create; // Call parent create
 end;
@@ -490,6 +494,14 @@ end;
 function TRedisCommands.GetSocket : TTCPBlockSocket;
 begin
  Result := FIO.Socket;
+end;
+
+procedure TRedisCommands.RedisIOErrorEvent(Sender: TObject; var Handled: Boolean
+  );
+begin
+  debug('An error from the socket was raised.');
+  if Assigned(FOnError) then
+   FOnError(Sender, Handled);
 end;
 
 function TRedisCommands.build_raw_command(const command : String;
