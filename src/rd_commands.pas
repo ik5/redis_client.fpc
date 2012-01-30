@@ -310,7 +310,7 @@ implementation
 
 function TRedisServer.BGRewriteAOF: TRedisReturnType;
 begin
-  Result := send_command2('BGREWRITEAOF', []);
+  Result := send_command2('BGREWRITEAOF');
 end;
 
 { TRedisConnection }
@@ -322,7 +322,7 @@ end;
 
 function TRedisConnection.Ping: TRedisReturnType;
 begin
-  Result := send_command2('PING', []);
+  Result := send_command2('PING');
 end;
 
 function TRedisConnection.Select(db : Word = 0): TRedisReturnType;
@@ -337,7 +337,7 @@ end;
 
 function TRedisConnection.Quit: TRedisReturnType;
 begin
-  Result := send_command2('QUIT', []);
+  Result := send_command2('QUIT');
 end;
 
 { TRedisObject }
