@@ -19,27 +19,25 @@ end;
 procedure test_connection;
 var RedisConnection : TRedisConnection;
 begin
-  RedisConnection       := TRedisConnection.Create(IO);
   IO.Connect;
-
-  return        := RedisConnection.Ping;
+  RedisConnection := TRedisConnection.Create(IO);
+  return          := RedisConnection.Ping;
   print_return('ping');
 
-  return := RedisConnection.Auth('foobare');
+  return          := RedisConnection.Auth('foobare');
   print_return('Auth');
 
-  return := RedisConnection.Select(1);
+  return          := RedisConnection.Select(1);
   print_return('Select');
 
-  return := RedisConnection.Echo('Hello World');
+  return          := RedisConnection.Echo('Hello World');
   print_return('Echo');
 
-  return := RedisConnection.Echo('"Hello"W"orld');
+  return          := RedisConnection.Echo('"Hello"W"orld');
   print_return('Echo');
-
 
   // Test Last !
-  return := RedisConnection.Quit;
+  return          := RedisConnection.Quit;
   print_return('Quit');
   RedisConnection.Free;
 end;
