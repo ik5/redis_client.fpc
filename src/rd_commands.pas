@@ -204,7 +204,7 @@ type
        measure latency. Returns PONG
 
        Returns:
-         TRedisBulkReturnType on success
+         TRedisStatusReturnType on success
          nil on exception
 
        Exceptions:
