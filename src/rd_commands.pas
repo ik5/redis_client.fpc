@@ -99,17 +99,19 @@ type
 
   TRedisCommands = class(TRedisObject)
   protected
-    FIO        : TRedisIO;
-    FERROR     : Integer;
-    FOnError   : TIOErrorEvent;
+    FIO          : TRedisIO;
+    FERROR       : Integer;
+    FOnError     : TIOErrorEvent;
     FBoolTrue,
-    FBoolFalse : String;
+    FBoolFalse   : String;
+    FRedisParser : TRedisParser;
 
     function ParamsToStr(params : array of const) : String; virtual;
     function GetSocket: TTCPBlockSocket;
     procedure RedisIOErrorEvent(Sender : TObject; var Handled : Boolean);
   public
     constructor Create(AIO : TRedisIO); reintroduce; virtual;
+    destructor Destroy;                              override;
 
     (* Generate a raw command to send.
        Parameters:
@@ -400,14 +402,21 @@ begin
     raise ERedisException.Create(txtMissingIO);
  end;
 
-  FError      := ERROR_OK;
-  FBoolFalse  := 'false';
-  FBoolTrue   := 'true';
+  FError       := ERROR_OK;
+  FBoolFalse   := 'false';
+  FBoolTrue    := 'true';
+  FRedisParser := TRedisParser.Create;
 
-  FIO.OnError := {$IFDEF FPC}@{$ENDIF}
+  FIO.OnError  := {$IFDEF FPC}@{$ENDIF}
                    RedisIOErrorEvent;
 
   inherited Create; // Call parent create
+end;
+
+destructor TRedisCommands.Destroy;
+begin
+  FreeAndNil(FRedisParser);
+  inherited Destroy;
 end;
 
 function TRedisCommands.ParamsToStr(params: array of const): String;
