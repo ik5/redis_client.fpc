@@ -9,7 +9,7 @@ uses
 var
   RedisDB : TRedisDB;
   IO      : TRedisIO;
-  Ping    : TRedisReturnType;
+  return  : TRedisReturnType;
 
 begin
   IO            := TRedisIO.Create;
@@ -17,12 +17,18 @@ begin
   IO.TargetPort := IntToStr(rd_protocol.DEFAULT_PORT);
   IO.Connect;
   RedisDB       := TRedisDB.Create(IO);
-  Ping          := RedisDB.Ping;
+  return        := RedisDB.Ping;
 
-  writeln('Ping ', Ping.Value, ' ', Ping.ReturnType);
+  writeln('Ping ', return.Value, ' ', return.ReturnType);
+  return.Free;
+
+  return := RedisDB.Auth('foobared');
+  writeln('Auth ', return.Value, ' ', return.ReturnType);
+  return.Free;
+
   RedisDB.Free;
   IO.Disconnect;
   IO.Free;
-  Ping.Free;
+
 end.
 
