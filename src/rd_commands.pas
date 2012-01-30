@@ -247,6 +247,11 @@ type
                            the socket
      *)
     function Echo(const S : String) : TRedisReturnType; virtual;
+
+    (*
+
+     *)
+    function Quit : TRedisReturnType;                   virtual;
   published
     property ErrorCode;
     property Logger;
@@ -281,6 +286,11 @@ end;
 function TRedisDB.Echo(const S: String): TRedisReturnType;
 begin
   Result := send_command2('ECHO', [s]);
+end;
+
+function TRedisDB.Quit: TRedisReturnType;
+begin
+  Result := send_command2('QUIT', []);
 end;
 
 { TRedisObject }
