@@ -105,20 +105,13 @@ type
     FBoolTrue,
     FBoolFalse   : String;
     FRedisParser : TRedisParser;
-    FHost        : String;
-    FPort        : Word;
 
     function ParamsToStr(params : array of const) : String; virtual;
     function GetSocket: TTCPBlockSocket;
     procedure RedisIOErrorEvent(Sender : TObject; var Handled : Boolean);
-    procedure SetHost(AValue : String);
-    procedure SetPort(AValue : Word);
   public
-    constructor Create;  override;
+    constructor Create(AIO : TRedisIO); reintroduce; virtual;
     destructor Destroy;  override;
-
-    procedure Connect;    virtual;
-    procedure disconnect; virtual;
 
     (* Generate a raw command to send.
        Parameters:
@@ -171,9 +164,7 @@ type
     // The string for boolean true value
     property BoolTrue  : String  read FBoolTrue  write FBoolTrue;
     property ErrorCode : Integer read FError     write FError;
-    property Host      : String  read FHost      write SetHost;
     property Logger;
-    property Port      : Word    read FPort      write SetPort;
 
     property OnError   : TIOErrorEvent  read FOnError
                                        write FOnError;
@@ -503,9 +494,18 @@ end;
 
 { TRedisCommands }
 
-constructor TRedisCommands.Create;
+constructor TRedisCommands.Create(AIO : TRedisIO);
 begin
-  FIO          := TRedisIO.Create;
+  if Assigned(AIO) then
+    begin
+     FIO := AIO;
+     debug('We have IO for commands.');
+    end
+  else begin
+   error('We are missing IO for commands.');
+   raise ERedisException.Create(txtMissingIO);
+  end;
+
   FError       := ERROR_OK;
   FBoolFalse   := 'false';
   FBoolTrue    := 'true';
@@ -514,8 +514,6 @@ begin
   FIO.OnError  := {$IFDEF FPC}@{$ENDIF}
                    RedisIOErrorEvent;
 
-  FHost        := rd_protocol.DEFUALT_ADDRESS;
-  FPort        := rd_protocol.DEFAULT_PORT;
 
   inherited Create; // Call parent create
 end;
@@ -526,32 +524,6 @@ begin
   FIO.Disconnect;
   FIO.Free;
   inherited Destroy;
-end;
-
-procedure TRedisCommands.Connect;
-begin
-  FIO.Connect;
-end;
-
-procedure TRedisCommands.disconnect;
-begin
-  FIO.Disconnect;
-end;
-
-procedure TRedisCommands.SetHost(AValue: String);
-begin
-  if FHost = AValue then Exit;
-
-  FHost          := AValue;
-  FIO.TargetHost := FHost;
-end;
-
-procedure TRedisCommands.SetPort(AValue: Word);
-begin
-  if FPort = AValue then Exit;
-
-  FPort          := AValue;
-  FIO.TargetPort := IntToStr(FPort);
 end;
 
 function TRedisCommands.ParamsToStr(params: array of const): String;
