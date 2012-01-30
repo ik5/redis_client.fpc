@@ -157,8 +157,12 @@ type
   TRadisDB = class(TRedisCommands)
   public
     property Socket;
+
   published
+    property ErrorCode;
     property Logger;
+
+    property OnError;
   end;
 
 resourcestring
