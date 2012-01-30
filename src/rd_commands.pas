@@ -176,6 +176,29 @@ type
   public
     property Socket;
 
+    (* Request for authentication in a password protected Redis server.
+       Redis can be instructed to require a password before allowing clients to
+       execute commands.
+
+       If password matches the password in the configuration file, the server
+       replies with the OK status code and starts accepting commands.
+       Otherwise, an error is returned and the clients needs to try a new
+       password.
+
+
+       Parameters:
+         APass - A single password to send
+
+       Returns:
+         TRedisStatusReturnType on success
+         TRedisErrorReturnType on faliur
+         nil if there was an exception
+
+       Eceptions:
+         ERedisException - When something went wrong in the parsing or with
+                           the socket
+
+     *)
     function Auth(const APass : String) : TRedisReturnType; virtual;
   published
     property ErrorCode;
