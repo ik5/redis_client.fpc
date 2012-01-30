@@ -26,6 +26,10 @@ begin
   writeln('Auth ', return.Value, ' ', return.ReturnType);
   return.Free;
 
+  return := RedisDB.Select(17);
+  writeln('Select ', return.Value, ' ', return.ReturnType);
+  return.Free;
+
   RedisDB.Free;
   IO.Disconnect;
   IO.Free;
