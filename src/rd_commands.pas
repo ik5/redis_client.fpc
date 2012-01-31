@@ -498,8 +498,13 @@ type
     (*
 
      *)
-    function debug(const Action : String) : TRedisReturnType; virtual;
+    function debug(const Action : String) : TRedisReturnType; overload; virtual;
 
+    (*
+
+     *)
+    function debug(const Action : String; params : array of const)
+                                          : TRedisReturnType; overload; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -565,6 +570,12 @@ end;
 function TRedisServer.debug(const Action: String): TRedisReturnType;
 begin
   result := send_command2('DEBUG', [Action]);
+end;
+
+function TRedisServer.debug(const Action: String;
+  params: array of const): TRedisReturnType;
+begin
+  result := send_command2('DEBUG', AddFirstToVarRec(Action, params));
 end;
 
 { TRedisConnection }
