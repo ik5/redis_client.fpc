@@ -559,6 +559,11 @@ type
      *)
     function debug(const Action, key, value : String) : TRedisReturnType;
                                                               overload; virtual;
+
+    (*
+
+     *)
+    function debug_object(const key : String) : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -635,6 +640,11 @@ end;
 function TRedisServer.debug(const Action, key, value: String): TRedisReturnType;
 begin
   result := send_command2('DEBUG', [Action, key, value]);
+end;
+
+function TRedisServer.debug_object(const key: String): TRedisReturnType;
+begin
+  result := debug('OBJECT', [key]);
 end;
 
 { TRedisConnection }
