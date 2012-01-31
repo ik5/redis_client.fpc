@@ -320,6 +320,10 @@ type
                             the socket
      *)
     function BGSave : TRedisReturnType; virtual;
+
+    (*
+     *)
+    function config(const Action, value : String) : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -344,6 +348,11 @@ end;
 function TRedisServer.BGSave: TRedisReturnType;
 begin
   Result := send_command2('BGSAVE');
+end;
+
+function TRedisServer.config(const Action, value: String): TRedisReturnType;
+begin
+  Result := send_command2('CONFIG', [Action, value]);
 end;
 
 { TRedisConnection }
