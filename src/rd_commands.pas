@@ -364,6 +364,9 @@ type
     function config(const Action : String; values : array of const) :
                                              TRedisReturnType; overload; virtual;
 
+    (*
+     *)
+    function config_get(const value : String) : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -399,6 +402,11 @@ function TRedisServer.config(const Action: String;
   values: array of const): TRedisReturnType;
 begin
   Result := send_command2('CONFIG', AddFirstToVarRec(action, values));
+end;
+
+function TRedisServer.config_get(const value: String): TRedisReturnType;
+begin
+  Result := config('GET', value);
 end;
 
 { TRedisConnection }
