@@ -336,6 +336,8 @@ type
       Returns:
         * TRedisBulkReturnType on a single value answer
         * TRedisMultiBulkReturnType on a multiple value answer
+        * TRedisStatusReturnType on a sucess
+        * TRedisErrorReturnType on a failure
         * nil on exception
 
       Exceptions:
@@ -355,6 +357,8 @@ type
       Returns:
         * TRedisBulkReturnType on a single value answer
         * TRedisMultiBulkReturnType on a multiple value answer
+        * TRedisStatusReturnType on a sucess
+        * TRedisErrorReturnType on a failure
         * nil on exception
 
       Exceptions:
