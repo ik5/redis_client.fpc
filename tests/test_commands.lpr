@@ -39,13 +39,27 @@ begin
   // Test Last !
   return          := RedisConnection.Quit;
   print_return('Quit');
+
+  if IO.Connected then
+   IO.Disconnect;
   RedisConnection.Free;
+end;
+
+procedure test_server;
+var server : TRedisServer;
+begin
+ IO.Connect;
+ server := TRedisServer(IO);
+
+ if IO.Connected then
+   IO.Disconnect;
+ server.Free;
 end;
 
 begin
   IO            := TRedisIO.Create;
   test_connection;
-
+  test_server;
   IO.Disconnect;
   IO.Free;
 end.
