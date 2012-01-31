@@ -567,7 +567,13 @@ type
         * key - the key to see debug information
 
        Returns:
+        * TRedisStatusReturnType on a sucess
+        * TRedisErrorReturnType on a failure
+        * nil on exception
 
+      Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
      *)
     function debug_object(const key : String) : TRedisReturnType; virtual;
   published
