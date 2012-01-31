@@ -65,6 +65,9 @@ begin
  return := server.config('get', '*max-*-entries*');
  print_return('config get ');
 
+ return := server.DBSize;
+ print_return('dbsize');
+
  if IO.Connected then
    IO.Disconnect;
  server.Free;
