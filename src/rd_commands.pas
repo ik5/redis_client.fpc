@@ -494,6 +494,12 @@ type
                             the socket
      *)
     function DBSize : TRedisReturnType; virtual;
+
+    (*
+
+     *)
+    function debug(const Action : String) : TRedisReturnType; virtual;
+
   published
     property ErrorCode;
     property Logger;
@@ -554,6 +560,11 @@ end;
 function TRedisServer.DBSize: TRedisReturnType;
 begin
   Result := send_command2('DBSIZE');
+end;
+
+function TRedisServer.debug(const Action: String): TRedisReturnType;
+begin
+  result := send_command2('DEBUG', [Action]);
 end;
 
 { TRedisConnection }
