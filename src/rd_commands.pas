@@ -440,6 +440,10 @@ type
         This implementation of the command support only one setting at a time.
      *)
     function config_set(const aName, value : String) : TRedisReturnType; virtual;
+
+    (*
+     *)
+    function config_restart : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -485,6 +489,11 @@ end;
 function TRedisServer.config_set(const aName, value: String): TRedisReturnType;
 begin
   Result := config('SET', [aName, value]);
+end;
+
+function TRedisServer.config_restart: TRedisReturnType;
+begin
+  Result := config('RESTART');
 end;
 
 { TRedisConnection }
