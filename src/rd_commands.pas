@@ -396,6 +396,10 @@ type
         using an asterisk as a value (e.g. config_get('*'); )
      *)
     function config_get(const value : String) : TRedisReturnType; virtual;
+
+    (*
+     *)
+    function config_set(const aName, value : String) : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -436,6 +440,11 @@ end;
 function TRedisServer.config_get(const value: String): TRedisReturnType;
 begin
   Result := config('GET', value);
+end;
+
+function TRedisServer.config_set(const aName, value: String): TRedisReturnType;
+begin
+  Result := config('SET', [aName, value]);
 end;
 
 { TRedisConnection }
