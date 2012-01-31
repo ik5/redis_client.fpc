@@ -106,9 +106,14 @@ type
     FBoolFalse   : String;
     FRedisParser : TRedisParser;
 
+    type
+      TVarRecs = array of TVarRec;
+
     function ParamsToStr(params : array of const) : String; virtual;
     function GetSocket: TTCPBlockSocket;
     procedure RedisIOErrorEvent(Sender : TObject; var Handled : Boolean);
+
+    function AddFirstToVarRec(const s : string; arr : array of const) : TVarRecs;
   public
     constructor Create(AIO : TRedisIO); reintroduce; virtual;
     destructor Destroy;  override;
@@ -322,8 +327,27 @@ type
     function BGSave : TRedisReturnType; virtual;
 
     (*
+       General purpose function to use the "config" command.
+
+       Parameters:
+        * Action - The name of the action to use with config. Such as "get"
+        * value  - The name of the value to send with the action
+
+      Returns:
+        * TRedisBulkReturnType on a single value answer
+        * TRedisMultiBulkReturnType on a multiple value answer
+        * nil on exception
+
+      Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
      *)
-    function config(const Action, value : String) : TRedisReturnType; virtual;
+    function config(const Action, value : String) : TRedisReturnType;
+                                                              overload; virtual;
+
+    function config(const Action : String; values : array of const) :
+                                             TRedisReturnType; overload; virtual;
+
   published
     property ErrorCode;
     property Logger;
@@ -353,6 +377,12 @@ end;
 function TRedisServer.config(const Action, value: String): TRedisReturnType;
 begin
   Result := send_command2('CONFIG', [Action, value]);
+end;
+
+function TRedisServer.config(const Action: String;
+  values: array of const): TRedisReturnType;
+begin
+  Result := send_command2('CONFIG', AddFirstToVarRec(action, values));
 end;
 
 { TRedisConnection }
@@ -719,6 +749,18 @@ begin
   debug('An error from the socket was raised.');
   if Assigned(FOnError) then
    FOnError(Sender, Handled);
+end;
+
+function TRedisCommands.AddFirstToVarRec(const s: string;
+  arr: array of const) : TVarRecs;
+var
+  i : integer;
+begin
+  SetLength(Result, Length(arr) + 1);
+  Result[0].VType   := vtString;
+  Result[0].VString := Pointer(s);
+  for i := 0 to High(arr) do
+   Result[i+1] := arr[i];
 end;
 
 function TRedisCommands.build_raw_command(const command : String;
