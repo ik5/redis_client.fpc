@@ -113,7 +113,7 @@ type
     function GetSocket: TTCPBlockSocket;
     procedure RedisIOErrorEvent(Sender : TObject; var Handled : Boolean);
 
-    function AddFirstToVarRec(const s : string; arr : array of const) : TVarRecs;
+    function AddFirstToVarRec(s : string; arr : array of const) : TVarRecs;
   public
     constructor Create(AIO : TRedisIO); reintroduce; virtual;
     destructor Destroy;  override;
@@ -561,6 +561,12 @@ type
                                                               overload; virtual;
 
     (*
+       Get debugging information about a key
+
+       Parameters:
+        * key - the key to see debug information
+
+       Returns:
 
      *)
     function debug_object(const key : String) : TRedisReturnType; virtual;
@@ -644,7 +650,7 @@ end;
 
 function TRedisServer.debug_object(const key: String): TRedisReturnType;
 begin
-  result := debug('OBJECT', [key]);
+  result := send_command2('DEBUG', ['OBJECT', key]);
 end;
 
 { TRedisConnection }
@@ -1013,7 +1019,7 @@ begin
    FOnError(Sender, Handled);
 end;
 
-function TRedisCommands.AddFirstToVarRec(const s: string;
+function TRedisCommands.AddFirstToVarRec(s: string;
   arr: array of const) : TVarRecs;
 var
   i : integer;
