@@ -386,6 +386,10 @@ type
       Exceptions:
         * ERedisException - When something went wrong in the parsing or with
                             the socket
+
+      Note:
+        You can obtain a list of all the supported configuration parameters by
+        using an asterisk as a value (e.g. config_get('*'); )
      *)
     function config_get(const value : String) : TRedisReturnType; virtual;
   published
