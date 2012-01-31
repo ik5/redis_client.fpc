@@ -304,6 +304,22 @@ type
                             the socket
      *)
     function BGRewriteAOF : TRedisReturnType; virtual;
+
+    (*
+      Save the DB in background. The OK code is immediately returned.
+      Redis forks, the parent continues to server the clients, the child saves
+      the DB on disk then exit. A client my be able to check if the operation
+      succeeded using the LASTSAVE command.
+
+      Returns:
+        * TRedisStatusReturnType on success
+        * nil on exception
+
+       Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
+     *)
+    function BGSave : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -323,6 +339,11 @@ implementation
 function TRedisServer.BGRewriteAOF: TRedisReturnType;
 begin
   Result := send_command2('BGREWRITEAOF');
+end;
+
+function TRedisServer.BGSave: TRedisReturnType;
+begin
+  Result := send_command2('BGSAVE');
 end;
 
 { TRedisConnection }
