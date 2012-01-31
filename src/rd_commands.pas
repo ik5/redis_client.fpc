@@ -327,6 +327,26 @@ type
     function BGSave : TRedisReturnType; virtual;
 
     (*
+     General purpose function to use the "config" command.
+
+       Parameters:
+        * Action - The name of the action to use with config. Such as "RESTART"
+
+      Returns:
+        * TRedisBulkReturnType on a single value answer
+        * TRedisMultiBulkReturnType on a multiple value answer
+        * TRedisStatusReturnType on a sucess
+        * TRedisErrorReturnType on a failure
+        * nil on exception
+
+      Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
+     *)
+    function config(const Action : String) : TRedisReturnType;
+                                                              overload; virtual;
+
+    (*
        General purpose function to use the "config" command.
 
        Parameters:
@@ -468,6 +488,11 @@ end;
 function TRedisServer.BGSave: TRedisReturnType;
 begin
   Result := send_command2('BGSAVE');
+end;
+
+function TRedisServer.config(const Action: String): TRedisReturnType;
+begin
+  Result := send_command2('CONFIG', [Action]);
 end;
 
 function TRedisServer.config(const Action, value: String): TRedisReturnType;
