@@ -496,18 +496,66 @@ type
     function DBSize : TRedisReturnType; virtual;
 
     (*
+      General purpose function to use the "debug" command.
 
+       Parameters:
+        * Action - The name of the action to use with config. Such as "SEGFULT"
+
+      Returns:
+        * TRedisBulkReturnType on a single value answer
+        * TRedisMultiBulkReturnType on a multiple value answer
+        * TRedisStatusReturnType on a sucess
+        * TRedisErrorReturnType on a failure
+        * TRedisNullReturnType on non return
+        * nil on exception
+
+      Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
      *)
     function debug(const Action : String) : TRedisReturnType; overload; virtual;
 
     (*
+      General purpose function to use the "debug" command.
 
+       Parameters:
+        * Action - The name of the action to use with config. Such as "OBJECT"
+        * params - list of items to sent with action
+
+      Returns:
+        * TRedisBulkReturnType on a single value answer
+        * TRedisMultiBulkReturnType on a multiple value answer
+        * TRedisStatusReturnType on a sucess
+        * TRedisErrorReturnType on a failure
+        * TRedisNullReturnType on non return
+        * nil on exception
+
+      Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
      *)
     function debug(const Action : String; params : array of const)
                                           : TRedisReturnType; overload; virtual;
 
     (*
+      General purpose function to use the "debug" command.
 
+       Parameters:
+        * Action - The name of the action to use with config. Such as "OBJECT"
+        * key    - name of a key to use
+        * value  - the value to place to name
+
+      Returns:
+        * TRedisBulkReturnType on a single value answer
+        * TRedisMultiBulkReturnType on a multiple value answer
+        * TRedisStatusReturnType on a sucess
+        * TRedisErrorReturnType on a failure
+        * TRedisNullReturnType on non return
+        * nil on exception
+
+      Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
      *)
     function debug(const Action, key, value : String) : TRedisReturnType;
                                                               overload; virtual;
