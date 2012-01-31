@@ -481,6 +481,10 @@ type
                             the socket
      *)
     function config_restart : TRedisReturnType; virtual;
+
+    (*
+     *)
+    function DBSize : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -536,6 +540,11 @@ end;
 function TRedisServer.config_restart: TRedisReturnType;
 begin
   Result := config('RESTART');
+end;
+
+function TRedisServer.DBSize: TRedisReturnType;
+begin
+  Result := send_command2('DBSIZE');
 end;
 
 { TRedisConnection }
