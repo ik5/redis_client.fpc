@@ -513,7 +513,7 @@ type
         * ERedisException - When something went wrong in the parsing or with
                             the socket
      *)
-    function debug(const Action : String) : TRedisReturnType; overload; virtual;
+    function rd_debug(const Action : String) : TRedisReturnType; overload; virtual;
 
     (*
       General purpose function to use the "debug" command.
@@ -534,7 +534,7 @@ type
         * ERedisException - When something went wrong in the parsing or with
                             the socket
      *)
-    function debug(const Action : String; params : array of const)
+    function rd_debug(const Action : String; params : array of const)
                                           : TRedisReturnType; overload; virtual;
 
     (*
@@ -557,7 +557,7 @@ type
         * ERedisException - When something went wrong in the parsing or with
                             the socket
      *)
-    function debug(const Action, key, value : String) : TRedisReturnType;
+    function rd_debug(const Action, key, value : String) : TRedisReturnType;
                                                               overload; virtual;
 
     (*
@@ -576,6 +576,15 @@ type
                             the socket
      *)
     function debug_object(const key : String) : TRedisReturnType; virtual;
+
+    (*
+       Make the server crash
+
+       WARNING:
+        This command makes the server crash. You will have to raise it up again.
+        Be extremly careful on using it.
+     *)
+    procedure debug_segfult; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -638,18 +647,18 @@ begin
   Result := send_command2('DBSIZE');
 end;
 
-function TRedisServer.debug(const Action: String): TRedisReturnType;
+function TRedisServer.rd_debug(const Action: String): TRedisReturnType;
 begin
   result := send_command2('DEBUG', [Action]);
 end;
 
-function TRedisServer.debug(const Action: String;
+function TRedisServer.rd_debug(const Action: String;
   params: array of const): TRedisReturnType;
 begin
   result := send_command2('DEBUG', AddFirstToVarRec(Action, params));
 end;
 
-function TRedisServer.debug(const Action, key, value: String): TRedisReturnType;
+function TRedisServer.rd_debug(const Action, key, value: String): TRedisReturnType;
 begin
   result := send_command2('DEBUG', [Action, key, value]);
 end;
@@ -657,6 +666,11 @@ end;
 function TRedisServer.debug_object(const key: String): TRedisReturnType;
 begin
   result := send_command2('DEBUG', ['OBJECT', key]);
+end;
+
+procedure TRedisServer.debug_segfult;
+begin
+  rd_debug('SEGFAULT');
 end;
 
 { TRedisConnection }
