@@ -398,6 +398,46 @@ type
     function config_get(const value : String) : TRedisReturnType; virtual;
 
     (*
+      The CONFIG SET command is used in order to reconfigure the server at
+      runtime without the need to restart Redis. You can change both trivial
+      parameters or switch from one to another persistence option using this
+      command.
+
+      The list of configuration parameters supported by CONFIG SET can be
+      obtained issuing a CONFIG GET * command, that is the symmetrical command
+      used to obtain information about the configuration of a running Redis
+      instance.
+
+      All the configuration parameters set using CONFIG SET are immediately
+      loaded by Redis that will start acting as specified starting from the next
+      command executed.
+
+      All the supported parameters have the same meaning of the equivalent
+      configuration parameter used in the redis.conf file, with the following
+      important differences:
+
+      * Where bytes or other quantities are specified, it is not possible to
+        use the redis.conf abbreviated form (10k 2gb ... and so forth),
+        everything should be specified as a well formed 64 bit integer, in the
+        base unit of the configuration directive.
+      * The save parameter is a single string of space separated integers.
+        Every pair of integers represent a seconds/modifications threshold.
+
+      Parameters:
+        * aName - The setting name
+        * value - The value to set to aName
+
+      Returns:
+        * TRedisStatusReturnType on a sucess
+        * TRedisErrorReturnType on a failure
+        * nil on exception
+
+      Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
+
+      Note:
+        This implementation of the command support only one setting at a time.
      *)
     function config_set(const aName, value : String) : TRedisReturnType; virtual;
   published
