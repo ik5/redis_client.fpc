@@ -483,6 +483,15 @@ type
     function config_restart : TRedisReturnType; virtual;
 
     (*
+      Return the number of keys in the currently selected database.
+
+      Returns:
+       * TRedisNumericReturnType for the number of keys
+       * nil on exception
+
+      Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
      *)
     function DBSize : TRedisReturnType; virtual;
   published
