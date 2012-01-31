@@ -11,8 +11,19 @@ var
   return  : TRedisReturnType;
 
 procedure print_return(const command : String);
+var
+  i : integer;
 begin
-  writeln(Command, ' ', return.Value, ' ', return.ReturnType);
+  if return.ReturnType <> ratMultiBulk then
+    writeln(Command, ' ', return.Value, ' ', return.ReturnType)
+  else begin
+    writeln(Command, ':');
+    for i := 0 to TRedisMultiBulkReturnType(return).Count -1 do
+      begin
+        write(#9, TRedisMultiBulkReturnType(return).Value[i].Value);
+        writeln(' ', TRedisMultiBulkReturnType(return).Value[i].ReturnType);
+      end;
+  end;
   return.Free;
 end;
 
@@ -49,9 +60,10 @@ procedure test_server;
 var server : TRedisServer;
 begin
  IO.Connect;
- server := TRedisServer(IO);
+ server := TRedisServer.Create(IO);
 
-
+ return := server.config('get', '*max-*-entries*');
+ print_return('config get ');
 
  if IO.Connected then
    IO.Disconnect;
