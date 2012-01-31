@@ -9,6 +9,7 @@ uses
 var
   IO      : TRedisIO;
   return  : TRedisReturnType;
+  log     : TEventLog;
 
 procedure print_return(const command : String);
 var
@@ -31,7 +32,9 @@ procedure test_connection;
 var RedisConnection : TRedisConnection;
 begin
   IO.Connect;
-  RedisConnection := TRedisConnection.Create(IO);
+  RedisConnection        := TRedisConnection.Create(IO);
+  RedisConnection.Logger := Log;
+
   return          := RedisConnection.Ping;
   print_return('ping');
 
@@ -60,7 +63,8 @@ procedure test_server;
 var server : TRedisServer;
 begin
  IO.Connect;
- server := TRedisServer.Create(IO);
+ server        := TRedisServer.Create(IO);
+ server.Logger := log;
 
  return := server.config('get', '*max-*-entries*');
  print_return('config get ');
@@ -68,13 +72,23 @@ begin
  return := server.DBSize;
  print_return('dbsize');
 
+ return := server.debug_object('debug');
+ print_return('debug object');
+
  if IO.Connected then
    IO.Disconnect;
  server.Free;
 end;
 
 begin
-  IO            := TRedisIO.Create;
+  log                  := TEventLog.Create(nil);
+  log.FileName         := ExtractFilePath(ParamStr(0)) + 'debug.log';
+  log.LogType          := ltFile;
+  log.AppendContent    := false;
+  log.DefaultEventType := etDebug;
+  log.Active           := true;
+  IO                   := TRedisIO.Create;
+  io.Log               := log;
 
   test_connection;
   test_server;
@@ -82,5 +96,6 @@ begin
   if IO.Connected then
     IO.Disconnect;
   IO.Free;
+  log.Free;
 end.
 
