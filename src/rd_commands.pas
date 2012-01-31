@@ -462,6 +462,23 @@ type
     function config_set(const aName, value : String) : TRedisReturnType; virtual;
 
     (*
+      Resets the statistics reported by Redis using the INFO command.
+
+      These are the counters that are reset:
+       * Keyspace hits
+       * Keyspace misses
+       * Number of commands processed
+       * Number of connections received
+       * Number of expired keys
+
+      Returns:
+        * TRedisStatusReturnType on a sucess
+        * TRedisErrorReturnType on a failure
+        * nil on exception
+
+      Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
      *)
     function config_restart : TRedisReturnType; virtual;
   published
