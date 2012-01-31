@@ -365,6 +365,27 @@ type
                                              TRedisReturnType; overload; virtual;
 
     (*
+      The CONFIG GET command is used to read the configuration parameters of a
+      running Redis server. Not all the configuration parameters are supported.
+      The symmetric command used to alter the configuration at run time is
+      CONFIG SET.
+
+      CONFIG GET takes a single argument, that is glob style pattern.
+      All the configuration parameters matching this parameter are reported as
+      a list of key-value pairs.
+
+      Parameters:
+        * value - The value to send to get such as *max-*-entries*
+
+      Returns:
+        * TRedisMultiBulkReturnType as a key value answer. First item is the key
+          the second item is the value.
+          On multiple answers, it still the same, the 3rd item will be a key and
+          the 4th will be the value etc...
+
+      Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
      *)
     function config_get(const value : String) : TRedisReturnType; virtual;
   published
