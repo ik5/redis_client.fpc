@@ -51,6 +51,8 @@ begin
  IO.Connect;
  server := TRedisServer(IO);
 
+
+
  if IO.Connected then
    IO.Disconnect;
  server.Free;
@@ -58,9 +60,12 @@ end;
 
 begin
   IO            := TRedisIO.Create;
+
   test_connection;
   test_server;
-  IO.Disconnect;
+
+  if IO.Connected then
+    IO.Disconnect;
   IO.Free;
 end.
 
