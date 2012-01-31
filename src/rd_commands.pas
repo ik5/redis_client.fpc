@@ -331,7 +331,7 @@ type
 
        Parameters:
         * Action - The name of the action to use with config. Such as "get"
-        * value  - The name of the value to send with the action
+        * value  - The value to send with the action
 
       Returns:
         * TRedisBulkReturnType on a single value answer
@@ -345,6 +345,22 @@ type
     function config(const Action, value : String) : TRedisReturnType;
                                                               overload; virtual;
 
+    (*
+       General purpose function to use the "config" command.
+
+       Parameters:
+        * Action - The name of the action to use with config. Such as "get"
+        * values - a list of values to send with Action
+
+      Returns:
+        * TRedisBulkReturnType on a single value answer
+        * TRedisMultiBulkReturnType on a multiple value answer
+        * nil on exception
+
+      Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
+     *)
     function config(const Action : String; values : array of const) :
                                              TRedisReturnType; overload; virtual;
 
