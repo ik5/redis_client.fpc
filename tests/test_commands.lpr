@@ -75,6 +75,9 @@ begin
  return := server.debug_object('debug');
  print_return('debug object');
 
+ return := server.info;
+ print_return('INFO');
+
  if IO.Connected then
    IO.Disconnect;
  server.Free;
