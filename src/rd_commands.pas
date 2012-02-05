@@ -583,11 +583,23 @@ type
        WARNING:
         This command makes the server crash. You will have to raise it up again.
         Be extremly careful on using it.
+
+       Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
      *)
     procedure debug_segfult; virtual;
 
     (*
+        Delete all the keys of all the existing databases, not just the
+        currently selected one. This command never fails.
 
+        Returns:
+         * TRedisStatusReturnType on a sucess
+
+        Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
      *)
     function FlushAll : TRedisReturnType; virtual;
   published
