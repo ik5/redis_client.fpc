@@ -585,6 +585,11 @@ type
         Be extremly careful on using it.
      *)
     procedure debug_segfult; virtual;
+
+    (*
+
+     *)
+    function FlushAll : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -671,6 +676,11 @@ end;
 procedure TRedisServer.debug_segfult;
 begin
   rd_debug('SEGFAULT');
+end;
+
+function TRedisServer.FlushAll: TRedisReturnType;
+begin
+
 end;
 
 { TRedisConnection }
