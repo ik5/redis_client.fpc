@@ -602,6 +602,11 @@ type
                             the socket
      *)
     function FlushAll : TRedisReturnType; virtual;
+
+    (*
+
+     *)
+    function FlushDB : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -693,6 +698,11 @@ end;
 function TRedisServer.FlushAll: TRedisReturnType;
 begin
   Result := send_command2('FLUSHALL');
+end;
+
+function TRedisServer.FlushDB: TRedisReturnType;
+begin
+  Result := send_command2('FLUSHDB');
 end;
 
 { TRedisConnection }
