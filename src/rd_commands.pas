@@ -655,7 +655,6 @@ type
           allocations of a certain size (up to 256). This provides a means of
           introspection for the type of allocations performed by Redis at run
           time.
-
      *)
     function info : TRedisReturnType; virtual;
   published
