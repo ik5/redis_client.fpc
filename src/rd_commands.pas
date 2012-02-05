@@ -596,6 +596,7 @@ type
 
         Returns:
          * TRedisStatusReturnType on a sucess
+         * nil on exception
 
         Exceptions:
         * ERedisException - When something went wrong in the parsing or with
@@ -604,7 +605,16 @@ type
     function FlushAll : TRedisReturnType; virtual;
 
     (*
+      Delete all the keys of the currently selected DB. This command never
+      fails.
 
+      Returns:
+         * TRedisStatusReturnType on a sucess
+         * nil on exception
+
+        Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
      *)
     function FlushDB : TRedisReturnType; virtual;
   published
