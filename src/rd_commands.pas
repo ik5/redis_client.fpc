@@ -680,7 +680,7 @@ end;
 
 function TRedisServer.FlushAll: TRedisReturnType;
 begin
-
+  Result := send_command2('FLUSHALL');
 end;
 
 { TRedisConnection }
