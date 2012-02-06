@@ -14,7 +14,7 @@ const
   s5 = '-All your base are belong to us'#13#10;
   s6 = '$-1'#13#10;
   s7 = '$0'#13#10; // Empty, but not null
-  s8 = '$948'#13#10'redis_version:2.4.6'#13#10'redis_git_sha1:00000000'#13#10          +
+  s8 = '$954'#13#10'redis_version:2.4.6'#13#10'redis_git_sha1:00000000'#13#10          +
        'redis_git_dirty:0'#13#10'arch_bits:64'#13#10'multiplexing_api:epoll'#13#10     +
        'gcc_version:4.6.2'#13#10'process_id:2668'#13#10'uptime_in_seconds:90442'#13#10 +
        'uptime_in_days:1'#13#10'lru_clock:732174'#13#10'used_cpu_sys:4.74'#13#10       +
