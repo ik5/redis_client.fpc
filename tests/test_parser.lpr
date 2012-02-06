@@ -31,7 +31,7 @@ const
        'total_connections_received:11'#13#10'total_commands_processed:36'#13#10        +
        'expired_keys:0'#13#10'evicted_keys:0'#13#10'keyspace_hits:0'#13#10             +
        'keyspace_misses:0'#13#10'pubsub_channels:0'#13#10'pubsub_patterns:0'#13#10     +
-       'latest_fork_usec:917'#13#10'vm_enabled:0'#13#10'role:master'#13#10;
+       'latest_fork_usec:917'#13#10'vm_enabled:0'#13#10'role:master'#13#10#13#10;
 
 var
   r      : TRedisReturnType;
@@ -74,6 +74,10 @@ begin
   r.Free;
   r := parser.ParseLine(s7);
   writeln('Going over s7 (', s7, ') : [', r.Value, ']', ' ', r.IsNill);
+  r.Free;
+  r := parser.ParseLine(s8);
+  writeln('Going over s8 (', s8, ') - len=', Length(s8),
+          ' : [', r.Value, '] ', r.IsNill);
   r.Free;
 
   r := parser.ParseLine(s2);
