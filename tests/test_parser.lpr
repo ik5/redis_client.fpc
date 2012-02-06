@@ -62,5 +62,6 @@ begin
   for i := 0 to TRedisMultiBulkReturnType(r).Count -1 do
     writeln(#9, i+1, '. ', TRedisMultiBulkReturnType(r).Value[i].Value);
   r.Free;
+  parser.Free;
 end.
 
