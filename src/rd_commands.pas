@@ -840,7 +840,7 @@ begin
 end;
 
 function TRedisParser.ParseLine(const s: string): TRedisReturnType;
-  function GetBulkItem(ALine : String) : TRedisReturnType; inline;
+  function GetBulkItem(ALine : String) : TRedisReturnType;
   var
     alength, j, x : integer;
     tmps          : string;
