@@ -14,6 +14,24 @@ const
   s5 = '-All your base are belong to us'#13#10;
   s6 = '$-1'#13#10;
   s7 = '$0'#13#10; // Empty, but not null
+  s8 = '$948'#13#10'redis_version:2.4.6'#13#10'redis_git_sha1:00000000'#13#10          +
+       'redis_git_dirty:0'#13#10'arch_bits:64'#13#10'multiplexing_api:epoll'#13#10     +
+       'gcc_version:4.6.2'#13#10'process_id:2668'#13#10'uptime_in_seconds:90442'#13#10 +
+       'uptime_in_days:1'#13#10'lru_clock:732174'#13#10'used_cpu_sys:4.74'#13#10       +
+       'used_cpu_user:5.41'#13#10'used_cpu_sys_children:0.04'#13#10                    +
+       'used_cpu_user_children:0.00'#13#10'connected_clients:3'#13#10                  +
+       'connected_slaves:0'#13#10'client_longest_output_list:0'#13#10                  +
+       'client_biggest_input_buf:0'#13#10'blocked_clients:0'#13#10                     +
+       'used_memory:743896'#13#10'used_memory_human:726.46K'#13#10                     +
+       'used_memory_rss:7225344'#13#10'used_memory_peak:735264'#13#10                  +
+       'used_memory_peak_human:718.03K'#13#10'mem_fragmentation_ratio:9.71'#13#10      +
+       'mem_allocator:jemalloc-2.2.5'#13#10'loading:0'#13#10'aof_enabled:0'#13#10      +
+       'changes_since_last_save:0'#13#10'bgsave_in_progress:0'#13#10                   +
+       'last_save_time:1328439863'#13#10'bgrewriteaof_in_progress:0'#13#10             +
+       'total_connections_received:11'#13#10'total_commands_processed:36'#13#10        +
+       'expired_keys:0'#13#10'evicted_keys:0'#13#10'keyspace_hits:0'#13#10             +
+       'keyspace_misses:0'#13#10'pubsub_channels:0'#13#10'pubsub_patterns:0'#13#10     +
+       'latest_fork_usec:917'#13#10'vm_enabled:0'#13#10'role:master'#13#10;
 
 var
   r      : TRedisReturnType;
