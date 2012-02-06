@@ -46,7 +46,8 @@ begin
   writeln(s4, ' ', parser.GetAnswerType(s4));
   writeln(s5, ' ', parser.GetAnswerType(s5));
   writeln(s6, ' ', parser.GetAnswerType(s6));
-  writeln(s7, ' ', parser.GetAnswerType(s6));
+  writeln(s7, ' ', parser.GetAnswerType(s7));
+  writeln(s8, ' ', parser.GetAnswerType(s8));
   writeln;
 
 {  list := split_bulk(s2);
