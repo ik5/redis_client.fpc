@@ -879,7 +879,7 @@ function TRedisParser.ParseLine(const s: string): TRedisReturnType;
     inc(j, 2); // go to the next value after #13#10
     // Get the value from the string
     tmps := '';
-    while ((j <= alength) and (ALine[j] <> #13)) or (Length(tmps) = x-1) do
+    while (j <= alength) and (j-1 < x) do
      begin
        tmps := tmps + ALine[j];
        inc(j);
