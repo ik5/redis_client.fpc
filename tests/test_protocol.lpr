@@ -27,6 +27,9 @@ begin
   cmd                  := command.build_raw_command('ECHO', ['"Hello World"']);
   answer               := redis.raw_send_command(cmd);
   writeln(answer);
+  cmd                  := command.build_raw_command('INFO', []);
+  answer               := redis.raw_send_command(cmd);
+  writeln(answer);
   redis.Disconnect;
   redis.Free;
   command.Free;
