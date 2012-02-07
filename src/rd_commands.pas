@@ -731,6 +731,12 @@ type
         caching to block on when shutting down
      *)
     function ShutDown : TRedisReturnType; virtual;
+
+    (*
+
+      *)
+    function SlaveOf(const host : String; Port : Word) : TRedisReturnType;
+                                                                        virtual;
   published
     property ErrorCode;
     property Logger;
@@ -847,6 +853,11 @@ end;
 function TRedisServer.ShutDown: TRedisReturnType;
 begin
   Result := send_command2('SHUTDOWN');
+end;
+
+function TRedisServer.SlaveOf(const host: String; Port: Word): TRedisReturnType;
+begin
+  Result := send_command2('SLAVEOF', [host, port]);
 end;
 
 { TRedisConnection }
