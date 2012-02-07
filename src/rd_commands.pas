@@ -659,6 +659,18 @@ type
     function info : TRedisReturnType; virtual;
 
     (*
+       Return the UNIX TIME of the last DB save executed with success.
+       A client may check if a BGSAVE command succeeded reading the LASTSAVE
+       value, then issuing a BGSAVE command and checking at regular intervals
+       every N seconds if LASTSAVE changed.
+
+       Returns:
+        * TRedisNumericReturnType with the Epoch of the last save
+        * nil on exception
+
+        Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
      *)
     function LastSave : TRedisReturnType; virtual;
   published
