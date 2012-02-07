@@ -733,8 +733,45 @@ type
     function ShutDown : TRedisReturnType; virtual;
 
     (*
+      The SLAVEOF command can change the replication settings of a slave on the
+      fly. If a Redis server is already acting as slave, the command
+      SLAVEOF NO ONE will turn off the replication turning the Redis server
+      into a MASTER. In the proper form SLAVEOF hostname port will make the
+      server a slave of the specific server listening at the specified hostname
+      and port.
 
-      *)
+      If a server is already a slave of some master, SLAVEOF hostname port will
+      stop the replication against the old server and start the synchronization
+      against the new one discarding the old dataset.
+
+      The form SLAVEOF no one will stop replication turning the server into a
+      MASTER but will not discard the replication. So if the old master stop
+      working it is possible to turn the slave into a master and set the
+      application to use the new master in read/write. Later when the other
+      Redis server will be fixed it can be configured in order to work as slave.
+
+      Parameters:
+       * host - the name of the host
+       * Port - the port of the host
+
+      Returns:
+       * TRedisStatusReturnType on success
+       * TRedisErrorReturnType on failure
+       * nil on exception
+
+      Exceptions:
+       * ERedisException - When something went wrong in the parsing or with
+                           the socket
+
+      Notes:
+       * Redis works as hierarchy and not as a cluster
+       * If you have requirement for password authentication, use masterauth.
+         You can set it on the fly using 'CONFIG SET masterauth mypass'.
+       * When you set "slave-serve-stale-data" to "no", Redis will reply with an
+         error for every command until the replication link is back up.
+         Connections will not be refused. This parameter can be set using
+         'CONFIG SET' as well, but not when the link is down.
+     *)
     function SlaveOf(const host : String; Port : Word) : TRedisReturnType;
                                                                         virtual;
   published
