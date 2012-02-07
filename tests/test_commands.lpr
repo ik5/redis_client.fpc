@@ -78,6 +78,9 @@ begin
  return := server.info;
  print_return('INFO');
 
+ return := server.LastSave;
+ print_return('lastsave');
+
  if IO.Connected then
    IO.Disconnect;
  server.Free;
