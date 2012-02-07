@@ -774,6 +774,11 @@ type
      *)
     function SlaveOf(const host : String; Port : Word) : TRedisReturnType;
                                                                         virtual;
+
+    (*
+
+     *)
+    //function
   published
     property ErrorCode;
     property Logger;
