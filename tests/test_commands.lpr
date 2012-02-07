@@ -3,7 +3,8 @@ program test_commands;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, sysutils, laz_synapse, rd_protocol, rd_commands, rd_types, eventlog
+  Classes, sysutils, laz_synapse, rd_protocol, rd_commands, rd_types, eventlog,
+  strutils
   { you can add units after this };
 
 var
@@ -12,18 +13,28 @@ var
   log     : TEventLog;
 
 procedure print_return(const command : String);
-var
-  i : integer;
+
+procedure print_multibulk(level : Byte; List : TRedisReturnType);
+var i : integer;
+begin
+  for i := 0 to TRedisMultiBulkReturnType(List).Count -1 do
+      begin
+        if TRedisMultiBulkReturnType(List).Value[i].ReturnType = ratMultiBulk then
+          print_multibulk(level +1, TRedisMultiBulkReturnType(List).Value[i])
+        else begin
+          write(DupeString(#9, level),
+                TRedisMultiBulkReturnType(List).Value[i].Value);
+          writeln(' ', TRedisMultiBulkReturnType(List).Value[i].ReturnType);
+        end;
+      end;
+end;
+
 begin
   if return.ReturnType <> ratMultiBulk then
     writeln(Command, ' ', return.Value, ' ', return.ReturnType)
   else begin
     writeln(Command, ':');
-    for i := 0 to TRedisMultiBulkReturnType(return).Count -1 do
-      begin
-        write(#9, TRedisMultiBulkReturnType(return).Value[i].Value);
-        writeln(' ', TRedisMultiBulkReturnType(return).Value[i].ReturnType);
-      end;
+    print_multibulk(1, return);
   end;
   return.Free;
 end;
