@@ -673,6 +673,20 @@ type
                             the socket
      *)
     function LastSave : TRedisReturnType; virtual;
+
+    (*
+       !!!!!!
+              This function is not implemented by me at this time, but will be
+              in the feature
+       !!!!!!
+
+       MONITOR is a debugging command that outputs the whole sequence of
+       commands received by the Redis server. is very handy in order to
+       understand what is happening into the database.
+       This command is used directly via telnet.
+
+     *)
+    // function Monitor
   published
     property ErrorCode;
     property Logger;
