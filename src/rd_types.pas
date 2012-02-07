@@ -398,7 +398,8 @@ begin
       SetLength(FValues, l+1);
     end
   else begin // Let's replace the current item with a new one
-     FreeItem(idx -1);
+     if FAutoFreeItem then
+       FreeItem(idx -1);
   end;
 
   if idx > 0 then dec(idx); // Our index must be one less then the length
