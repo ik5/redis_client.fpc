@@ -657,6 +657,10 @@ type
           time.
      *)
     function info : TRedisReturnType; virtual;
+
+    (*
+     *)
+    function LastSave : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -758,6 +762,11 @@ end;
 function TRedisServer.info: TRedisReturnType;
 begin
   Result := send_command2('INFO');
+end;
+
+function TRedisServer.LastSave: TRedisReturnType;
+begin
+  Result := send_command2('LASTSAVE');
 end;
 
 { TRedisConnection }
