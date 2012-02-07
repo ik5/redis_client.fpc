@@ -696,13 +696,39 @@ type
         * TRedisErrorReturnType on failure
         * nil on exception
 
-        Exceptions:
+       Exceptions:
         * ERedisException - When something went wrong in the parsing or with
                             the socket
      *)
     function Save : TRedisReturnType; virtual;
 
     (*
+       The command behavior is the following:
+
+        * Stop all the clients.
+        * Perform a blocking SAVE if at least one save point is configured.
+        * Flush the Append Only File if AOF is enabled.
+        * Quit the server.
+
+       If persistence is enabled this commands makes sure that Redis is
+       switched off without the lost of any data. This is not guaranteed if the
+       client uses simply SAVE and then QUIT because other clients may alter
+       the DB data between the two commands.
+
+       Returns:
+        * Nothing on success
+        * TRedisErrorReturnType on failure
+        * nil on exception
+
+       Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
+
+       Note:
+        A Redis instance that is configured for not persisting on disk
+        (no AOF configured, nor "save" directive) will not dump the RDB file
+        on SHUTDOWN, as usually you don't want Redis instances used only for
+        caching to block on when shutting down
      *)
     function ShutDown : TRedisReturnType; virtual;
   published
