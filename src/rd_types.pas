@@ -116,6 +116,9 @@ type
     function AsCardinal : Cardinal; virtual;
 
     function AsExtended : Extended; virtual;
+    function AsCurrency : Currency; virtual;
+
+    function AsDateTime : TDateTime; virtual;
 
     function AsRedisString : String; override;
   published
@@ -179,7 +182,7 @@ resourcestring
   txtIndexOutOfBounds = 'Index %d out of bounds';
 
 implementation
-uses SysUtils;
+uses SysUtils, DateUtils;
 
 { TRedisNullReturnType }
 
@@ -266,6 +269,16 @@ end;
 function TRedisNumericReturnType.AsExtended: Extended;
 begin
   Result := StrToFloat(FValue);
+end;
+
+function TRedisNumericReturnType.AsCurrency: Currency;
+begin
+  Result := StrToCurr(FValue);
+end;
+
+function TRedisNumericReturnType.AsDateTime: TDateTime;
+begin
+  Result := UnixToDateTime(StrToInt64(FValue));
 end;
 
 function TRedisNumericReturnType.AsRedisString: String;
