@@ -701,6 +701,10 @@ type
                             the socket
      *)
     function Save : TRedisReturnType; virtual;
+
+    (*
+     *)
+    function ShutDown : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -812,6 +816,11 @@ end;
 function TRedisServer.Save: TRedisReturnType;
 begin
   Result := send_command2('SAVE');
+end;
+
+function TRedisServer.ShutDown: TRedisReturnType;
+begin
+  Result := send_command2('SHUTDOWN');
 end;
 
 { TRedisConnection }
