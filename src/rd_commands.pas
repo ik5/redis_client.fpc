@@ -1086,7 +1086,7 @@ begin
        for i := Low(list) to high(list) do
          begin
            Debug('ParseLine: list[%d] = [%s]', [i, list[i]]);
-           TRedisMultiBulkReturnType(Result).Add(GetBulkItem(list[i]));
+           TRedisMultiBulkReturnType(Result).Add(ParseLine(list[i]));
          end;
      end;
   else
