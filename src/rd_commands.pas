@@ -687,6 +687,11 @@ type
 
      *)
     // function Monitor
+
+    (*
+
+     *)
+    function Save : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -793,6 +798,11 @@ end;
 function TRedisServer.LastSave: TRedisReturnType;
 begin
   Result := send_command2('LASTSAVE');
+end;
+
+function TRedisServer.Save: TRedisReturnType;
+begin
+  Result := send_command2('SAVE');
 end;
 
 { TRedisConnection }
