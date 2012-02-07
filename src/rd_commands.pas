@@ -689,7 +689,16 @@ type
     // function Monitor
 
     (*
+       Synchronously save the dataset to disk
 
+       Returns:
+        * TRedisStatusReturnType on success
+        * TRedisErrorReturnType on failure
+        * nil on exception
+
+        Exceptions:
+        * ERedisException - When something went wrong in the parsing or with
+                            the socket
      *)
     function Save : TRedisReturnType; virtual;
   published
