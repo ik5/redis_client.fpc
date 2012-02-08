@@ -793,7 +793,8 @@ type
         * TRedisBulkReturnType On Empty list
         * TRedisMultiBulkReturnType on given list.
           Please note that it will be nested TRedisMultiBulkReturnType
-          containing either TRedisNumericReturnType or TRedisBulkReturnType
+          containing TRedisNumericReturnType, TRedisBulkReturnType or
+          TRedisBulkReturnType
         * nil on exception
 
       Exceptions:
@@ -818,7 +819,8 @@ type
         * TRedisBulkReturnType On Empty list
         * TRedisMultiBulkReturnType on given list.
           Please note that it will be nested TRedisMultiBulkReturnType
-          containing either TRedisNumericReturnType or TRedisBulkReturnType
+          containing TRedisNumericReturnType, TRedisBulkReturnType or
+          TRedisBulkReturnType
         * nil on exception
 
       Exceptions:
