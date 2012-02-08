@@ -92,6 +92,9 @@ begin
  return := server.LastSave;
  print_return('lastsave');
 
+ return := server.SlowLog('GET');
+ print_return('SLOWLOG GET');
+
  if IO.Connected then
    IO.Disconnect;
  server.Free;
