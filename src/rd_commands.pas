@@ -778,7 +778,13 @@ type
     (*
 
      *)
-    //function
+    function SlowLog(const Action : String) : TRedisReturnType;
+                                                              overload; virtual;
+    (*
+
+     *)
+    function SlowLog(const Action : String; Index : Word) : TRedisReturnType;
+                                                              overload; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -900,6 +906,17 @@ end;
 function TRedisServer.SlaveOf(const host: String; Port: Word): TRedisReturnType;
 begin
   Result := send_command2('SLAVEOF', [host, port]);
+end;
+
+function TRedisServer.SlowLog(const Action: String): TRedisReturnType;
+begin
+  Result := send_command2('SLOWLOG', [Action]);
+end;
+
+function TRedisServer.SlowLog(const Action: String; Index: Word
+  ): TRedisReturnType;
+begin
+  Result := send_command2('SLOWLOG', [Action, Index]);
 end;
 
 { TRedisConnection }
