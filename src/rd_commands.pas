@@ -775,13 +775,55 @@ type
     function SlaveOf(const host : String; Port : Word) : TRedisReturnType;
                                                                         virtual;
 
-    (*
+    (* Please tead the following link: http://redis.io/commands/slowlog
 
+       This command is used in order to read and reset the Redis slow queries
+       log.
+
+       Parameters:
+        * Action - Must have one of the following commands: GET, RESET, LEN
+                   GET   will return a list of all the existed logs
+                   RESET will clean all of the existed logs
+                   LEN   will return the number of logs existed
+
+       Returns:
+        * TRedisStatusReturnType on success
+        * TRedisErrorReturnType on failure
+        * TRedisNumericReturnType on numeric value
+        * TRedisBulkReturnType On Empty list
+        * TRedisMultiBulkReturnType on given list.
+          Please note that it will be nested TRedisMultiBulkReturnType
+          containing either TRedisNumericReturnType or TRedisBulkReturnType
+        * nil on exception
+
+      Exceptions:
+       * ERedisException - When something went wrong in the parsing or with
+                           the socket
      *)
     function SlowLog(const Action : String) : TRedisReturnType;
                                                               overload; virtual;
-    (*
+    (* Please tead the following link: http://redis.io/commands/slowlog
 
+       This command is used in order to read and reset the Redis slow queries
+       log.
+
+       Parameters:
+        * Action - Must have the following commands: GET
+        * Index  - The index of the log to display.
+
+       Returns:
+        * TRedisStatusReturnType on success
+        * TRedisErrorReturnType on failure
+        * TRedisNumericReturnType on numeric value
+        * TRedisBulkReturnType On Empty list
+        * TRedisMultiBulkReturnType on given list.
+          Please note that it will be nested TRedisMultiBulkReturnType
+          containing either TRedisNumericReturnType or TRedisBulkReturnType
+        * nil on exception
+
+      Exceptions:
+       * ERedisException - When something went wrong in the parsing or with
+                           the socket
      *)
     function SlowLog(const Action : String; Index : Word) : TRedisReturnType;
                                                               overload; virtual;
