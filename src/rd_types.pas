@@ -115,9 +115,6 @@ type
     function AsQWord    : QWord;    virtual;
     function AsCardinal : Cardinal; virtual;
 
-    function AsExtended : Extended; virtual;
-    function AsCurrency : Currency; virtual;
-
     function AsDateTime : TDateTime; virtual;
 
     function AsRedisString : String; override;
@@ -264,16 +261,6 @@ begin
   val(FValue, Result, i);
   if i <> 0 then
     EConvertError.CreateFmt('Error Converting %s to integer at %d', [FValue, i]);
-end;
-
-function TRedisNumericReturnType.AsExtended: Extended;
-begin
-  Result := StrToFloat(FValue);
-end;
-
-function TRedisNumericReturnType.AsCurrency: Currency;
-begin
-  Result := StrToCurr(FValue);
 end;
 
 function TRedisNumericReturnType.AsDateTime: TDateTime;
