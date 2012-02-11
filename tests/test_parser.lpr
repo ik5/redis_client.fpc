@@ -41,7 +41,11 @@ const
         'CONFIG'#13#10'$3'#13#10'SET'#13#10'$23'#13#10                                  +
         'slowlog-log-slower-than'#13#10'$1'#13#10'1'#13#10;
 
+// We are going to be recursive a bit, and more
 function ParseLine(const s : String) : TRedisReturnType;
+
+
+
 begin
 
 end;
