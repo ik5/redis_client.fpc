@@ -44,22 +44,23 @@ const
 // We are going to be recursive a bit, and more
 function ParseLine(const s : String) : TRedisReturnType;
 
-function ReadLine(const Buf : String; const Index : integer) : Integer;
-begin
-
-end;
-
-function SingleReturn(var index : Integer; var ABuf : String) : TRedisReturnType;
-begin
-
-end;
-
 var
-  i : integer;
-
+  i, j, len : integer;
+  tmp       : string;
 begin
+  Result := nil;
+  len    := Length(s);
 
-end;
+  if len = 0 then
+    raise ERedisParserException.Create('Empty string was given to the parser')
+                                                 at get_caller_frame(get_frame);
+  tmp := '';
+  i   := 1;
+
+  case s[i] of
+
+  end; // case s[i] of
+end; // function
 
 var
   r      : TRedisReturnType;
