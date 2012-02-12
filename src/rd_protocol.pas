@@ -88,6 +88,7 @@ type
   (* If this type of exception is raised, you should read the socket error for
       better understanding of the problem *)
   ERedisSocketException = class(ERedisIOException);
+  ERedisParserException = class(ERedisException);
 
   { TRedisIO }
 
