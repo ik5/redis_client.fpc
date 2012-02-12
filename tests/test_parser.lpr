@@ -3,7 +3,7 @@ program test_parser;
 {$mode objfpc}{$H+}{$B-}
 
 uses
-  SysUtils, laz_synapse, rd_commands, rd_types
+  SysUtils, laz_synapse, rd_commands, rd_types, rd_protocol
   { you can add units after this };
 
 const
@@ -44,7 +44,18 @@ const
 // We are going to be recursive a bit, and more
 function ParseLine(const s : String) : TRedisReturnType;
 
+function ReadLine(const Buf : String; const Index : integer) : Integer;
+begin
 
+end;
+
+function SingleReturn(var index : Integer; var ABuf : String) : TRedisReturnType;
+begin
+
+end;
+
+var
+  i : integer;
 
 begin
 
