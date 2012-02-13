@@ -44,21 +44,71 @@ const
 // We are going to be recursive a bit, and more
 function ParseLine(const s : String) : TRedisReturnType;
 
-var
-  i, j, len : integer;
-  tmp       : string;
-begin
-  Result := nil;
-  len    := Length(s);
+function ParseSingleStart(const Line : String) : TRedisReturnType; //inline;
+  function CreateSingleStart(const ch : Char) : TRedisReturnType; inline;
+  begin
+   case ch of
+     RPLY_ERROR_CHAR  : Result := TRedisErrorReturnType.Create;
+     RPLY_INT_CHAR    : Result := TRedisNumericReturnType.Create;
+     RPLY_SINGLE_CHAR : Result := TRedisStatusReturnType.Create;
+   else
+     Result := nil;
+   end;
+  end;
 
-  if len = 0 then
+var i, len : integer;
+    tmp    : string;
+begin
+  tmp    := '';
+  len    := Length(Line);
+  Result := CreateSingleStart(Line[1]);
+  //Debug('ParseLine: Line type: %s', [Result.ClassName]);
+  inc(i);
+  for i := 2 to len do
+    begin
+      // Ignore last CRLF
+      if (i = len-1) and ((LINE[i] = CR) and (Line[i+1] = LF)) then break;
+      tmp := tmp + line[i];
+    end;
+
+  //Debug('ParseLine: Item value [%s]', [tmp]);
+  Result.Value := tmp;
+end;
+
+function ParseBulk(const Line : String) : TRedisReturnType
+var i, j len : integer;
+    tmp      : string;
+begin
+  len    := Length(Line);
+  Result := nil;
+  //Debug('GetBulkItem, alength: %d, j: %d', [len, 2]);
+  // Something wrong. minumum length must be 4: $0#13#10
+  if len < 4 then
+    raise ERedisParserException.CreateFmt(
+     'Given line (%s) does not contain valid length.', [Line])
+                                                 at get_caller_frame(get_frame);
+
+  i := 2;
+  while (i <= len-1) and (not (Line[i] = CR) and (Line[i+1] = LF)) do
+   begin
+
+   end;
+
+
+
+end;
+
+begin
+  if Length(s) = 0 then
     raise ERedisParserException.Create('Empty string was given to the parser')
                                                  at get_caller_frame(get_frame);
-  tmp := '';
-  i   := 1;
-
-  case s[i] of
-
+  case s[1] of
+   // Single start return
+   RPLY_ERROR_CHAR,
+   RPLY_INT_CHAR,
+   RPLY_SINGLE_CHAR     : Result := ParseSingleStart(s);
+   RPLY_BULK_CHAR       : Result := ParseBulk;
+   RPLY_MULTI_BULK_CHAR : Result := nil;
   end; // case s[i] of
 end; // function
 
