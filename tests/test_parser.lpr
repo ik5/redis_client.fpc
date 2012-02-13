@@ -62,6 +62,12 @@ begin
   tmp    := '';
   len    := Length(Line);
   Result := CreateSingleStart(Line[1]);
+  if Result = nil then
+    begin
+      //Debug('Result returned nil from class creation');
+      raise ERedisParserException.Create('Could not determin Line type.');
+      exit;
+    end;
   //Debug('ParseLine: Line type: %s', [Result.ClassName]);
   inc(i);
   for i := 2 to len do
@@ -85,8 +91,7 @@ begin
   // Something wrong. minumum length must be 4: $0#13#10
   if len < 4 then
     raise ERedisParserException.CreateFmt(
-     'Given line (%s) does not contain valid length.', [Line])
-                                                 at get_caller_frame(get_frame);
+     'Given line (%s) does not contain valid length.', [Line]);
 
   i   := 2;
   tmp := '';
@@ -105,7 +110,7 @@ begin
          Result.Free;
          Result := nil;
         end;
-      Raise ERedisException.Create(txtUnableToGetItemLength);}
+      Raise ERedisParserException.Create(txtUnableToGetItemLength);}
       exit;
     end;
 
