@@ -140,6 +140,11 @@ begin
   Result.Value := tmp;
 end;
 
+function ParseMultiBulk(const Line : String) : TRedisReturnType;
+begin
+
+end;
+
 begin
   if Length(s) = 0 then
     raise ERedisParserException.Create('Empty string was given to the parser')
@@ -150,7 +155,10 @@ begin
    RPLY_INT_CHAR,
    RPLY_SINGLE_CHAR     : Result := ParseSingleStart(s);
    RPLY_BULK_CHAR       : Result := ParseBulk(s);
-   RPLY_MULTI_BULK_CHAR : Result := nil;
+   RPLY_MULTI_BULK_CHAR : Result := ParseMultiBulk(s);
+  else
+    //Error(txtUnknownString, [s]);
+    raise ERedisParserException.CreateFmt(txtUnknownString, [s]);
   end; // case s[i] of
 end; // function
 
