@@ -75,9 +75,9 @@ begin
   Result.Value := tmp;
 end;
 
-function ParseBulk(const Line : String) : TRedisReturnType
-var i, j len : integer;
-    tmp      : string;
+function ParseBulk(const Line : String) : TRedisReturnType;
+var i, x, c, len : integer;
+    tmp          : string;
 begin
   len    := Length(Line);
   Result := nil;
@@ -88,14 +88,51 @@ begin
      'Given line (%s) does not contain valid length.', [Line])
                                                  at get_caller_frame(get_frame);
 
-  i := 2;
-  while (i <= len-1) and (not (Line[i] = CR) and (Line[i+1] = LF)) do
+  i   := 2;
+  tmp := '';
+  // Going to extract the length
+  while (i <= len-1) and (Line[i] <> CR) do
    begin
-
+     tmp := tmp + Line[i];
+     inc(i);
    end;
 
+  if not TryStrToInt(tmp, x) then
+    begin
+      {Error('GetBulkItem: %s', [txtUnableToGetItemLength]);
+      if Assigned(Result) then
+        begin
+         Result.Free;
+         Result := nil;
+        end;
+      Raise ERedisException.Create(txtUnableToGetItemLength);}
+      exit;
+    end;
 
+    if x = -1 then
+      begin
+        //debug('GetBulkItem: Length is null');
+        Result := TRedisNullReturnType.Create;
+        exit;
+      end
+    else
+      Result := TRedisBulkReturnType.Create;
 
+  //debug('GetBulkItem: length is %d', [x]);
+  inc(i, 2); // go to the next value after #13#10
+  // Get the value from the string
+  tmp := '';
+  c   := 1; // Counter. We are going to do a for like loop ...
+  while (i <= len) and (c <= x) do
+   begin
+     tmp := tmp + Line[i];
+     inc(i);
+     inc(c);
+   end;
+
+  //debug('GetBulkItem: item value [%s]', [tmps]);
+
+  Result.Value := tmp;
 end;
 
 begin
@@ -107,7 +144,7 @@ begin
    RPLY_ERROR_CHAR,
    RPLY_INT_CHAR,
    RPLY_SINGLE_CHAR     : Result := ParseSingleStart(s);
-   RPLY_BULK_CHAR       : Result := ParseBulk;
+   RPLY_BULK_CHAR       : Result := ParseBulk(s);
    RPLY_MULTI_BULK_CHAR : Result := nil;
   end; // case s[i] of
 end; // function
