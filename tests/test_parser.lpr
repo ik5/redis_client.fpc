@@ -42,9 +42,9 @@ const
         'slowlog-log-slower-than'#13#10'$1'#13#10'1'#13#10;
 
 // We are going to be recursive a bit, and more
-function ParseLine(const s : String) : TRedisReturnType;
+function ParseLine(const s : String; var loc : Cardinal) : TRedisReturnType;
 
-function ParseSingleStart(const Line : String) : TRedisReturnType; //inline;
+function ParseSingleStart(const Line : String; var i : Cardinal) : TRedisReturnType; //inline;
   function CreateSingleStart(const ch : Char) : TRedisReturnType; inline;
   begin
    case ch of
@@ -56,7 +56,7 @@ function ParseSingleStart(const Line : String) : TRedisReturnType; //inline;
    end;
   end;
 
-var i, len : integer;
+var j, len : integer;
     tmp    : string;
 begin
   tmp    := '';
@@ -69,21 +69,21 @@ begin
       exit;
     end;
   //Debug('ParseLine: Line type: %s', [Result.ClassName]);
-  inc(i);
-  for i := 2 to len do
+
+  for j := i to len do
     begin
       // Ignore last CRLF
-      if (i = len-1) and ((LINE[i] = CR) and (Line[i+1] = LF)) then break;
-      tmp := tmp + line[i];
+      if (j = len-1) and ((LINE[j] = CR) and (Line[j+1] = LF)) then break;
+      tmp := tmp + line[j];
     end;
-
+  i := j;
   //Debug('ParseLine: Item value [%s]', [tmp]);
   Result.Value := tmp;
 end;
 
-function ParseBulk(const Line : String) : TRedisReturnType;
-var i, x, c, len : integer;
-    tmp          : string;
+function ParseBulk(const Line : String; var i : cardinal) : TRedisReturnType;
+var x, c, len : integer;
+    tmp       : string;
 begin
   len    := Length(Line);
   Result := nil;
@@ -93,7 +93,6 @@ begin
     raise ERedisParserException.CreateFmt(
      'Given line (%s) does not contain valid length.', [Line]);
 
-  i   := 2;
   tmp := '';
   // Going to extract the length
   while (i <= len-1) and (Line[i] <> CR) do
@@ -140,27 +139,37 @@ begin
   Result.Value := tmp;
 end;
 
-function ParseMultiBulk(const Line : String) : TRedisReturnType;
+function ParseMultiBulk(const Line : String; var i : Cardinal) : TRedisReturnType;
 begin
 
 end;
+
+var Index : Cardinal;
 
 begin
   if Length(s) = 0 then
     raise ERedisParserException.Create('Empty string was given to the parser')
                                                  at get_caller_frame(get_frame);
-  case s[1] of
+  Index := Loc +1;
+  case s[Index -1] of
    // Single start return
    RPLY_ERROR_CHAR,
    RPLY_INT_CHAR,
-   RPLY_SINGLE_CHAR     : Result := ParseSingleStart(s);
-   RPLY_BULK_CHAR       : Result := ParseBulk(s);
-   RPLY_MULTI_BULK_CHAR : Result := ParseMultiBulk(s);
+   RPLY_SINGLE_CHAR     : Result := ParseSingleStart(s, Index);
+   RPLY_BULK_CHAR       : Result := ParseBulk(s, Index);
+   RPLY_MULTI_BULK_CHAR : Result := ParseMultiBulk(s, Index);
   else
     //Error(txtUnknownString, [s]);
     raise ERedisParserException.CreateFmt(txtUnknownString, [s]);
-  end; // case s[i] of
+  end; // case s[index] of
 end; // function
+
+function ParseLine(const s : String) : TRedisReturnType;
+var Index : Cardinal;
+begin
+  Index  := 1;
+  Result := ParseLine(s, Index);
+end;
 
 var
   r      : TRedisReturnType;
