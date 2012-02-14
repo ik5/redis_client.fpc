@@ -40,7 +40,8 @@ uses
 type
   TRedisAnswerType = (ratStatus,    ratError,
                       ratNumeric,   ratBulk,
-                      ratMultiBulk, ratUnknown);
+                      ratMultiBulk, ratUnknown,
+                      ratNull);
 
   { TRedisReturnType }
 
@@ -190,12 +191,12 @@ end;
 
 class function TRedisNullReturnType.ReturnType: TRedisAnswerType;
 begin
-  Result := inherited ReturnType;
+  Result := ratNull;
 end;
 
 class function TRedisNullReturnType.IsNill: Boolean;
 begin
-  Result := inherited IsNill;
+  Result := True;
 end;
 
 function TRedisNullReturnType.AsRedisString: String;
