@@ -45,7 +45,7 @@ const
 function ParseLine(const s : String; var loc : Cardinal) : TRedisReturnType; overload;
 
 function ParseSingleStart(const Line : String; var i : Cardinal) : TRedisReturnType; //inline;
-  function CreateSingleStart(const ch : Char) : TRedisReturnType; inline;
+  function CreateSingleStart(const ch : Char) : TRedisReturnType;
   begin
    case ch of
      RPLY_ERROR_CHAR  : Result := TRedisErrorReturnType.Create;
@@ -61,7 +61,7 @@ var j, len : integer;
 begin
   tmp    := '';
   len    := Length(Line);
-  Result := CreateSingleStart(Line[1]);
+  Result := CreateSingleStart(Line[i-1]);
   if Result = nil then
     begin
       //Debug('Result returned nil from class creation');
@@ -72,8 +72,10 @@ begin
 
   for j := i to len do
     begin
-      // Ignore last CRLF
+      // Ignore last CRLF at the end of the string
       if (j = len-1) and ((LINE[j] = CR) and (Line[j+1] = LF)) then break;
+      // ignore the CRLF if we are nesting ...
+      if (LINE[j] = CR) and (Line[j+1] = LF)                   then break;
       tmp := tmp + line[j];
     end;
   i := j;
@@ -218,8 +220,8 @@ begin
 end;
 
 var
-  r      : TRedisReturnType;
-  i      : integer;
+  r, r2  : TRedisReturnType;
+  i, j   : integer;
   //parser : TRedisParser;
 
 begin
@@ -268,6 +270,22 @@ begin
   writeln('Going over s2 (', s2, ') :');
   for i := 0 to TRedisMultiBulkReturnType(r).Count -1 do
     writeln(#9, i+1, '. ', TRedisMultiBulkReturnType(r).Value[i].Value);
+  r.Free;
+
+  r := {parser.}ParseLine(s9);
+  Writeln('Going over s9 (', s9, ') :');
+  for i := 0 to TRedisMultiBulkReturnType(r).Count -1 do
+    begin
+     if TRedisMultiBulkReturnType(r).Value[i] is TRedisMultiBulkReturnType then
+       begin
+         r2 := TRedisMultiBulkReturnType(r).Value[i];
+         writeln(#9'Going Nested:');
+         for j := 0 to TRedisMultiBulkReturnType(r2).Count -1 do
+           writeln(#9#9, j+1, '. ', TRedisMultiBulkReturnType(r).Value[i].Value);
+       end
+     else
+      writeln(#9, i+1, '. ', TRedisMultiBulkReturnType(r).Value[i].Value);
+    end;
   r.Free;
   //parser.Free;
 end.
