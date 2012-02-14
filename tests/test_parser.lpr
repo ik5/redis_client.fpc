@@ -312,16 +312,14 @@ begin
   r := {parser.}ParseLine(s2);
   writeln('Going over s2 (', s2, ') :');
   for i := 0 to TRedisMultiBulkReturnType(r).Count -1 do
-    writeln(#9, i+1, '. ', TRedisMultiBulkReturnType(r).Value[i].Value);
+    print_multi_bulk(TRedisMultiBulkReturnType(r).Value[i]);
   r.Free;
 *)
 
   r := {parser.}ParseLine(s9);
   Writeln('Going over s9 (', s9, ') :');
   for i := 0 to TRedisMultiBulkReturnType(r).Count -1 do
-    begin
-     print_multi_bulk(TRedisMultiBulkReturnType(r).Value[i]);
-    end;
+    print_multi_bulk(TRedisMultiBulkReturnType(r).Value[i]);
   r.Free;
   //parser.Free;
 end.
