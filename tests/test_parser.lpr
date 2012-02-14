@@ -3,7 +3,7 @@ program test_parser;
 {$mode objfpc}{$H+}{$B-}
 
 uses
-  SysUtils, laz_synapse, rd_commands, rd_types, rd_protocol
+  SysUtils, laz_synapse, rd_commands, rd_types, rd_protocol, strutils
   { you can add units after this };
 
 const
@@ -240,6 +240,24 @@ begin
   Result := ParseLine(s, Index);
 end;
 
+procedure print_multi_bulk(list : TRedisReturnType; depth : integer =0);
+var
+  i : integer;
+begin
+  if list.ReturnType <> ratMultiBulk then exit;
+
+  for i := 0 to TRedisMultiBulkReturnType(List).Count - 1 do
+    begin
+     if TRedisMultiBulkReturnType(list).Value[i].ReturnType = ratMultiBulk then
+       print_multi_bulk(TRedisMultiBulkReturnType(list).Value[i], depth +1)
+      else begin
+      write(DupeString(#9, depth));
+      writeln(i+1, '. ', TRedisMultiBulkReturnType(list).Value[i].Value, ' ',
+              TRedisMultiBulkReturnType(list).Value[i].ReturnType);
+      end;
+    end;
+end;
+
 var
   r, r2  : TRedisReturnType;
   i, j   : integer;
@@ -299,19 +317,7 @@ begin
   Writeln('Going over s9 (', s9, ') :');
   for i := 0 to TRedisMultiBulkReturnType(r).Count -1 do
     begin
-     if TRedisMultiBulkReturnType(r).Value[i] is TRedisMultiBulkReturnType then
-       begin
-         r2 := TRedisMultiBulkReturnType(r).Value[i];
-         writeln(#9'Going Nested:');
-         for j := 0 to TRedisMultiBulkReturnType(r2).Count -1 do
-           writeln(#9#9, j+1, '. ', TRedisMultiBulkReturnType(r).Value[i].Value,
-                    ' ', TRedisMultiBulkReturnType(r).Value[i].ReturnType);
-
-         continue;
-       end;
-
-      writeln(#9, i+1, '. ', TRedisMultiBulkReturnType(r).Value[i].Value, ' ',
-              TRedisMultiBulkReturnType(r).Value[i].ReturnType);
+     print_multi_bulk(TRedisMultiBulkReturnType(r).Value[i]);
     end;
   r.Free;
   //parser.Free;
