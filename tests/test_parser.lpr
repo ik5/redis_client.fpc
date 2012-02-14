@@ -281,10 +281,14 @@ begin
          r2 := TRedisMultiBulkReturnType(r).Value[i];
          writeln(#9'Going Nested:');
          for j := 0 to TRedisMultiBulkReturnType(r2).Count -1 do
-           writeln(#9#9, j+1, '. ', TRedisMultiBulkReturnType(r).Value[i].Value);
-       end
-     else
-      writeln(#9, i+1, '. ', TRedisMultiBulkReturnType(r).Value[i].Value);
+           writeln(#9#9, j+1, '. ', TRedisMultiBulkReturnType(r).Value[i].Value,
+                    ' ', TRedisMultiBulkReturnType(r).Value[i].ReturnType);
+
+         continue;
+       end;
+
+      writeln(#9, i+1, '. ', TRedisMultiBulkReturnType(r).Value[i].Value, ' ',
+              TRedisMultiBulkReturnType(r).Value[i].ReturnType);
     end;
   r.Free;
   //parser.Free;
