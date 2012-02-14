@@ -42,7 +42,7 @@ const
         'slowlog-log-slower-than'#13#10'$1'#13#10'1'#13#10;
 
 // We are going to be recursive a bit, and more
-function ParseLine(const s : String; var loc : Cardinal) : TRedisReturnType;
+function ParseLine(const s : String; var loc : Cardinal) : TRedisReturnType; overload;
 
 function ParseSingleStart(const Line : String; var i : Cardinal) : TRedisReturnType; //inline;
   function CreateSingleStart(const ch : Char) : TRedisReturnType; inline;
@@ -164,7 +164,7 @@ begin
   end; // case s[index] of
 end; // function
 
-function ParseLine(const s : String) : TRedisReturnType;
+function ParseLine(const s : String) : TRedisReturnType; overload;
 var Index : Cardinal;
 begin
   Index  := 1;
