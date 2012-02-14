@@ -74,11 +74,11 @@ begin
   Result := CreateSingleStart(Line[i-1]);
   if Result = nil then
     begin
-      Debug('Result returned nil from class creation');
+      Debug('CreateSingleStart: Result returned nil from class creation');
       raise ERedisParserException.Create('Could not determin Line type.');
       exit;
     end;
-  Debug('ParseLine: Line type: %s', [Result.ClassName]);
+  Debug('CreateSingleStart: Line type: %s', [Result.ClassName]);
 
   for j := i to len do
     begin
@@ -89,7 +89,7 @@ begin
       tmp := tmp + line[j];
     end;
   i := j;
-  Debug('ParseLine: Item value [%s]', [tmp]);
+  Debug('CreateSingleStart: Item value [%s]', [tmp]);
   Result.Value := tmp;
 end;
 
@@ -99,7 +99,7 @@ var x, c, len : integer;
 begin
   len    := Length(Line);
   Result := nil;
-  Debug('GetBulkItem, alength: %d, j: %d', [len, 2]);
+  Debug('ParseBulk, alength: %d, j: %d', [len, 2]);
   // Something wrong. minumum length must be 4: $0#13#10
   if len < 4 then
     raise ERedisParserException.CreateFmt(
@@ -127,14 +127,14 @@ begin
 
     if x = -1 then
       begin
-        Debug('GetBulkItem: Length is null');
+        Debug('ParseBulk: Length is null');
         Result := TRedisNullReturnType.Create;
         exit;
       end
     else
       Result := TRedisBulkReturnType.Create;
 
-  Debug('GetBulkItem: length is %d', [x]);
+  Debug('ParseBulk: length is %d', [x]);
   inc(i, 2); // go to the next value after #13#10
   // Get the value from the string
   tmp := '';
@@ -146,7 +146,7 @@ begin
      inc(c);
    end;
 
-  Debug('GetBulkItem: item value [%s]', [tmp]);
+  Debug('ParseBulk: item value [%s]', [tmp]);
 
   Result.Value := tmp;
 end;
@@ -161,11 +161,15 @@ begin
  tmp    := '';
  Index  := i;
 
+ Debug('ParseMuliBulk: i : [%d]', [i]);
+
  while (Index <= len) and (Line[Index] <> CR) do
   begin
     tmp := tmp + Line[Index];
     inc(Index);
   end;
+
+ Debug('ParseMuliBulk: Looked for index, and found [%s]', [tmp]);
 
  if not TryStrToInt(tmp, x) then
    begin
@@ -181,7 +185,7 @@ begin
 
    if x = -1 then
      begin
-       Debug('GetMultiBulkItem: Length is null');
+       Debug('ParseMultiBulk: Length is null');
        Result := TRedisNullReturnType.Create;
        i      := Index;
        exit;
@@ -193,10 +197,15 @@ begin
 
   for j := 1 to x do
     begin
+      Debug('ParseMultiBulk: Going over Item #%d', [j]);
       TRedisMultiBulkReturnType(Result).Add(ParseLine(Line, index));
       inc(index, 2); // Ignore the last CRLF
     end;
 
+  Debug('ParseMultiBulk: Before exiting the function. j [%d]', [j]);
+  Debug('ParseMultiBulk: Before exiting the function. Index [%d]', [index]);
+  Debug('ParseMultiBulk: Before exiting the function. Number of Items %d/%d',
+        [TRedisMultiBulkReturnType(Result).Count, x]);
   i := Index;
 end;
 
@@ -207,6 +216,7 @@ begin
     raise ERedisParserException.Create('Empty string was given to the parser')
                                                  at get_caller_frame(get_frame);
   Index := Loc +1;
+  Debug('ParseLine: Have Index=[%d], s[index-1]=[%s]', [Index, s[Index -1]]);
   case s[Index -1] of
    // Single start return
    RPLY_ERROR_CHAR,
@@ -219,6 +229,7 @@ begin
     raise ERedisParserException.CreateFmt(txtUnknownString, [s]);
   end; // case s[index] of
 
+  Debug('ParseLine: Index=[%d]', [Index]);
   Loc := Index;
 end; // function
 
