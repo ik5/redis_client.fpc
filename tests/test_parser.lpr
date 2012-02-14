@@ -140,8 +140,17 @@ begin
 end;
 
 function ParseMultiBulk(const Line : String; var i : Cardinal) : TRedisReturnType;
+var j, x, len : Integer;
+    tmp       : string;
 begin
+ len    := Length(Line);
+ Result := nil;
+ tmp    := '';
 
+ while (i <= len) and (Line[i] <> CR) do
+  begin
+
+  end;
 end;
 
 var Index : Cardinal;
