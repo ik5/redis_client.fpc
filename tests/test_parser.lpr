@@ -249,9 +249,12 @@ begin
   for i := 0 to TRedisMultiBulkReturnType(List).Count - 1 do
     begin
      if TRedisMultiBulkReturnType(list).Value[i].ReturnType = ratMultiBulk then
-       print_multi_bulk(TRedisMultiBulkReturnType(list).Value[i], depth +1)
+       begin
+        writeln(DupeString(#9, depth+1), i+1, '. ');
+        print_multi_bulk(TRedisMultiBulkReturnType(list).Value[i], depth +1);
+       end
       else begin
-      write(DupeString(#9, depth));
+      write(DupeString(#9, depth+1));
       writeln(i+1, '. ', TRedisMultiBulkReturnType(list).Value[i].Value, ' ',
               TRedisMultiBulkReturnType(list).Value[i].ReturnType);
       end;
