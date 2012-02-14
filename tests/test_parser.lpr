@@ -41,6 +41,16 @@ const
         'CONFIG'#13#10'$3'#13#10'SET'#13#10'$23'#13#10                                  +
         'slowlog-log-slower-than'#13#10'$1'#13#10'1'#13#10;
 
+procedure Debug(const s : String);
+begin
+  writeln(stderr, s);
+end;
+
+procedure Debug(const s : String; Params : array of const);
+begin
+  writeln(stderr, Format(s, Params));
+end;
+
 // We are going to be recursive a bit, and more
 function ParseLine(const s : String; var loc : Cardinal) : TRedisReturnType; overload;
 
@@ -64,11 +74,11 @@ begin
   Result := CreateSingleStart(Line[i-1]);
   if Result = nil then
     begin
-      //Debug('Result returned nil from class creation');
+      Debug('Result returned nil from class creation');
       raise ERedisParserException.Create('Could not determin Line type.');
       exit;
     end;
-  //Debug('ParseLine: Line type: %s', [Result.ClassName]);
+  Debug('ParseLine: Line type: %s', [Result.ClassName]);
 
   for j := i to len do
     begin
@@ -79,7 +89,7 @@ begin
       tmp := tmp + line[j];
     end;
   i := j;
-  //Debug('ParseLine: Item value [%s]', [tmp]);
+  Debug('ParseLine: Item value [%s]', [tmp]);
   Result.Value := tmp;
 end;
 
@@ -89,7 +99,7 @@ var x, c, len : integer;
 begin
   len    := Length(Line);
   Result := nil;
-  //Debug('GetBulkItem, alength: %d, j: %d', [len, 2]);
+  Debug('GetBulkItem, alength: %d, j: %d', [len, 2]);
   // Something wrong. minumum length must be 4: $0#13#10
   if len < 4 then
     raise ERedisParserException.CreateFmt(
@@ -105,7 +115,7 @@ begin
 
   if not TryStrToInt(tmp, x) then
     begin
-      {Error('GetBulkItem: %s', [txtUnableToGetItemLength]);
+      {Error('ParseBulk: %s', [txtUnableToGetItemLength]);
       if Assigned(Result) then
         begin
          Result.Free;
@@ -117,14 +127,14 @@ begin
 
     if x = -1 then
       begin
-        //debug('GetBulkItem: Length is null');
+        Debug('GetBulkItem: Length is null');
         Result := TRedisNullReturnType.Create;
         exit;
       end
     else
       Result := TRedisBulkReturnType.Create;
 
-  //debug('GetBulkItem: length is %d', [x]);
+  Debug('GetBulkItem: length is %d', [x]);
   inc(i, 2); // go to the next value after #13#10
   // Get the value from the string
   tmp := '';
@@ -136,7 +146,7 @@ begin
      inc(c);
    end;
 
-  //debug('GetBulkItem: item value [%s]', [tmps]);
+  Debug('GetBulkItem: item value [%s]', [tmp]);
 
   Result.Value := tmp;
 end;
@@ -159,7 +169,7 @@ begin
 
  if not TryStrToInt(tmp, x) then
    begin
-     {Error('GetBulkItem: %s', [txtUnableToGetItemLength]);
+     {Error('ParseMultiBulk: %s', [txtUnableToGetItemLength]);
      if Assigned(Result) then
        begin
         Result.Free;
@@ -171,7 +181,7 @@ begin
 
    if x = -1 then
      begin
-       //debug('GetMultiBulkItem: Length is null');
+       Debug('GetMultiBulkItem: Length is null');
        Result := TRedisNullReturnType.Create;
        i      := Index;
        exit;
@@ -243,6 +253,7 @@ begin
 
   writeln;}
 
+(*
   r := {parser.}ParseLine(s1);
   writeln('Going over s1 (', s1, ') : [', r.Value, ']', ' ', r.IsNill);
   r.Free;
@@ -271,6 +282,7 @@ begin
   for i := 0 to TRedisMultiBulkReturnType(r).Count -1 do
     writeln(#9, i+1, '. ', TRedisMultiBulkReturnType(r).Value[i].Value);
   r.Free;
+*)
 
   r := {parser.}ParseLine(s9);
   Writeln('Going over s9 (', s9, ') :');
