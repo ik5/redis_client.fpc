@@ -250,11 +250,11 @@ begin
     begin
      if TRedisMultiBulkReturnType(list).Value[i].ReturnType = ratMultiBulk then
        begin
-        writeln(DupeString(#9, depth+1), i+1, '. ');
+        writeln(DupeString(#9, depth), i+1, '. ');
         print_multi_bulk(TRedisMultiBulkReturnType(list).Value[i], depth +1);
        end
       else begin
-      write(DupeString(#9, depth+1));
+      write(DupeString(#9, depth));
       writeln(i+1, '. ', TRedisMultiBulkReturnType(list).Value[i].Value, ' ',
               TRedisMultiBulkReturnType(list).Value[i].ReturnType);
       end;
@@ -311,15 +311,14 @@ begin
 
   r := {parser.}ParseLine(s2);
   writeln('Going over s2 (', s2, ') :');
-  for i := 0 to TRedisMultiBulkReturnType(r).Count -1 do
-    print_multi_bulk(TRedisMultiBulkReturnType(r).Value[i]);
+  print_multi_bulk(TRedisMultiBulkReturnType(r));
   r.Free;
-*)
+  *)
+
 
   r := {parser.}ParseLine(s9);
   Writeln('Going over s9 (', s9, ') :');
-  for i := 0 to TRedisMultiBulkReturnType(r).Count -1 do
-    print_multi_bulk(TRedisMultiBulkReturnType(r).Value[i]);
+  print_multi_bulk(TRedisMultiBulkReturnType(r).Value[i]);
   r.Free;
   //parser.Free;
 end.
