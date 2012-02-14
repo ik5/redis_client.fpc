@@ -142,15 +142,17 @@ end;
 function ParseMultiBulk(const Line : String; var i : Cardinal) : TRedisReturnType;
 var j, x, len : Integer;
     tmp       : string;
+    Index     : Cardinal;
 begin
  len    := Length(Line);
  Result := nil;
  tmp    := '';
+ Index  := i;
 
- while (i <= len) and (Line[i] <> CR) do
+ while (Index <= len) and (Line[Index] <> CR) do
   begin
-    tmp := tmp + Line[i];
-    inc(i);
+    tmp := tmp + Line[Index];
+    inc(Index);
   end;
 
  if not TryStrToInt(tmp, x) then
@@ -169,17 +171,21 @@ begin
      begin
        //debug('GetMultiBulkItem: Length is null');
        Result := TRedisNullReturnType.Create;
+       i      := Index;
        exit;
      end
    else
     Result := TRedisMultiBulkReturnType.Create;
 
-  inc(i, 2);
+  inc(index, 2);
 
   for j := 1 to x do
     begin
-      TRedisMultiBulkReturnType(Result).Add(ParseLine(Line, i));
+      TRedisMultiBulkReturnType(Result).Add(ParseLine(Line, index));
+      inc(index, 2); // Ignore the last CRLF
     end;
+
+  i := Index;
 end;
 
 var Index : Cardinal;
@@ -200,6 +206,8 @@ begin
     //Error(txtUnknownString, [s]);
     raise ERedisParserException.CreateFmt(txtUnknownString, [s]);
   end; // case s[index] of
+
+  Loc := Index;
 end; // function
 
 function ParseLine(const s : String) : TRedisReturnType; overload;
