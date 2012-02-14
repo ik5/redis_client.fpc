@@ -149,8 +149,37 @@ begin
 
  while (i <= len) and (Line[i] <> CR) do
   begin
-
+    tmp := tmp + Line[i];
+    inc(i);
   end;
+
+ if not TryStrToInt(tmp, x) then
+   begin
+     {Error('GetBulkItem: %s', [txtUnableToGetItemLength]);
+     if Assigned(Result) then
+       begin
+        Result.Free;
+        Result := nil;
+       end;
+     Raise ERedisParserException.Create(txtUnableToGetItemLength);}
+     exit;
+   end;
+
+   if x = -1 then
+     begin
+       //debug('GetMultiBulkItem: Length is null');
+       Result := TRedisNullReturnType.Create;
+       exit;
+     end
+   else
+    Result := TRedisMultiBulkReturnType.Create;
+
+  inc(i, 2);
+
+  for j := 1 to x do
+    begin
+      TRedisMultiBulkReturnType(Result).Add(ParseLine(Line, i));
+    end;
 end;
 
 var Index : Cardinal;
