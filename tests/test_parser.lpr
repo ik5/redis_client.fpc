@@ -32,20 +32,18 @@ const
         'expired_keys:0'#13#10'evicted_keys:0'#13#10'keyspace_hits:0'#13#10             +
         'keyspace_misses:0'#13#10'pubsub_channels:0'#13#10'pubsub_patterns:0'#13#10     +
         'latest_fork_usec:917'#13#10'vm_enabled:0'#13#10'role:master'#13#10#13#10;
-  s9  = '*4'#13#10 + s2
-                   + s1
-                   + s3
-                   + s4;
+  s9  = '*1'#13#10'*4'#13#10':0'#13#10':1328734844'#13#10':14'#13#10                    +
+        '*4'#13#10'$6'#13#10'CONFIG'#13#10'$3'#13#10'SET'#13#10                         +
+        '$23'#13#10'slowlog-log-slower-than'#13#10'$1'#13#10'1'#13#10;
 
-
-        {'*4'#13#10'*4'#13#10':3'#13#10':1328739539'#13#10':25'#13#10'*2'#13#10          +
+  s10  ='*4'#13#10'*4'#13#10':3'#13#10':1328739539'#13#10':25'#13#10'*2'#13#10          +
         '$7'#13#10'SLOWLOG'#13#10'$3'#13#10'GET'#13#10'*4'#13#10':2'#13#10              +
         ':1328739520'#13#10':11'#13#10'*2'#13#10'$7'#13#10'SLOWLOG'#13#10               +
         '$3'#13#10'GET'#13#10'*4'#13#10':1'#13#10':1328734845'#13#10':16'#13#10         +
         '*2'#13#10'$7'#13#10'slowlog'#13#10'$3'#13#10'GET'#13#10'*4'#13#10              +
         ':0'#13#10':1328734844'#13#10':14'#13#10'*4'#13#10'$6'#13#10                    +
         'CONFIG'#13#10'$3'#13#10'SET'#13#10'$23'#13#10                                  +
-        'slowlog-log-slower-than'#13#10'$1'#13#10'1'#13#10;}
+        'slowlog-log-slower-than'#13#10'$1'#13#10'1'#13#10;
 
 procedure Debug(const s : String);
 begin
@@ -203,7 +201,8 @@ begin
 
   for j := 1 to x do
     begin
-      Debug('ParseMultiBulk: Going over Item #%d', [j]);
+      Debug('ParseMultiBulk: Going over Item #%d, Line[index]=%s',
+            [j, Line[Index]]);
       TRedisMultiBulkReturnType(Result).Add(ParseLine(Line, index));
       inc(index, 2); // Ignore the last CRLF
     end;
@@ -268,8 +267,7 @@ begin
 end;
 
 var
-  r, r2  : TRedisReturnType;
-  i, j   : integer;
+  r  : TRedisReturnType;
   //parser : TRedisParser;
 
 begin
@@ -319,12 +317,16 @@ begin
   writeln('Going over s2 (', s2, ') :');
   print_multi_bulk(TRedisMultiBulkReturnType(r));
   r.Free;
-  *)
-
 
   r := {parser.}ParseLine(s9);
   Writeln('Going over s9 (', s9, ') :');
-  print_multi_bulk(TRedisMultiBulkReturnType(r).Value[i]);
+  print_multi_bulk(TRedisMultiBulkReturnType(r));
+  r.Free;
+  *)
+
+  r := {parser.}ParseLine(s10);
+  Writeln('Going over s10 (', s10, ') :');
+  print_multi_bulk(TRedisMultiBulkReturnType(r));
   r.Free;
   //parser.Free;
 end.
