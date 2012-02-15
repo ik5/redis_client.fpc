@@ -67,7 +67,8 @@ type
     function GetAnswerType(const s : string) : TRedisAnswerType;
 
     (*
-        Convert proper redis string to TRedisAnswerType
+        Convert valid redis string to TRedisAnswerType
+
         Parameters:
          * s - The string to be parsed
 
@@ -76,19 +77,39 @@ type
                                execption was raised
 
         Exceptions:
-          * ERedisException - raise exception when some unexpected char was
-                              given or the given string is not a valid redis
-                              string.
+          * ERedisParserException - raise an exception when some invalid byte
+                                    was found at the redis return.
 
-        Note:
-          This function does not know how to handle multiple requests.
-          It will work only with single request, and will ignore or raise
-          exception on multiple requests.
+        Notes:
+         * This function should be used only if you wish to parse a single line
+           or to start parse from the beginning.
+
+         * This function is a wrapper function for ParseLine(s,loc).
      *)
     function ParseLine(const s : string)   : TRedisReturnType; overload;
 
     (*
+      Convert valid structure of redis string to TRedisAnswerType
 
+      Parameters:
+       * s   - The string to be parsed
+       * loc - The location in the "s" buffer to start parse.
+               The parser return the last place that was read back to the
+               variable.
+               To parse the begining of the "s" buffer, you must set the
+               variable to start with the value of "1".
+
+      Returns:
+          * TRedisReturnType - based class or nil if something went wrong but no
+                               execption was raised
+
+        Exceptions:
+          * ERedisParserException - raise an exception when some invalid byte
+                                    was found at the redis return.
+
+      Note:
+       * This function knows how to handle nested calls in the protocol, and
+         this is the actual function that does the parsing itself.
      *)
     function ParseLine(const s : String;
                        var loc : Cardinal) : TRedisReturnType; overload;
