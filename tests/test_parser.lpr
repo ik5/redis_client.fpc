@@ -213,8 +213,8 @@ begin
        inc(index, 2); // Ignore the last CRLF
     end;
 
-  Debug('ParseMultiBulk: Before exiting the function. j [%d] index [%d],'
-       +' items %d/%d', [j, index, TRedisMultiBulkReturnType(Result).Count, x]);
+  Debug('ParseMultiBulk: Before exiting the function. j [%d] index [%d],' +
+        ' items %d/%d', [j, index, TRedisMultiBulkReturnType(Result).Count, x]);
   i := Index;
 end;
 
@@ -276,8 +276,8 @@ var
   //parser : TRedisParser;
 
 begin
-  //parser := TRedisParser.Create;
-  {writeln(s1, ' ', parser.GetAnswerType(s1));
+  {parser := TRedisParser.Create;
+  writeln(s1, ' ', parser.GetAnswerType(s1));
   writeln(s2, ' ', parser.GetAnswerType(s2));
   writeln(s3, ' ', parser.GetAnswerType(s3));
   writeln(s4, ' ', parser.GetAnswerType(s4));
@@ -285,16 +285,8 @@ begin
   writeln(s6, ' ', parser.GetAnswerType(s6));
   writeln(s7, ' ', parser.GetAnswerType(s7));
   writeln(s8, ' ', parser.GetAnswerType(s8));
-  writeln; }
-
-{  list := split_bulk(s2);
-  writeln('Testing split: ', Length(list));
-  for i := 0 to High(list) do
-    writeln(#9, i +1,'. ', list[i]);
-
   writeln;}
 
-(*
   r := {parser.}ParseLine(s1);
   writeln('Going over s1 (', s1, ') : [', r.Value, ']', ' ', r.IsNill);
   r.Free;
@@ -327,7 +319,6 @@ begin
   Writeln('Going over s9 (', s9, ') :');
   print_multi_bulk(TRedisMultiBulkReturnType(r));
   r.Free;
-  *)
 
   r := {parser.}ParseLine(s10);
   Writeln('Going over s10 (', s10, ') :');
