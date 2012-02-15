@@ -95,6 +95,9 @@ begin
  return := server.SlowLog('GET');
  print_return('SLOWLOG GET');
 
+ return := server.Sync;
+ print_return('SYNC');
+
  if IO.Connected then
    IO.Disconnect;
  server.Free;

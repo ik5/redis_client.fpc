@@ -852,6 +852,25 @@ type
      *)
     function SlowLog(const Action : String; Index : Word) : TRedisReturnType;
                                                               overload; virtual;
+
+    (*
+      Internal command used for syncing replication
+
+      It instructs the server to create a dump file in the background,
+      which is sent when done. In the mean time, the server accumulates all
+      write commands in their protocol representation, which are sent after
+      the initial dump is sent. Every write command is streamed in its
+      protocol representation after that.
+
+      Returns:
+       * TRedisBulkReturnType on success with the dump information
+       * nil on exception
+
+     Exceptions:
+      * ERedisException - When something went wrong in the parsing or with
+                          the socket
+    *)
+    function Sync : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -986,6 +1005,11 @@ function TRedisServer.SlowLog(const Action: String; Index: Word
   ): TRedisReturnType;
 begin
   Result := send_command2('SLOWLOG', [Action, Index]);
+end;
+
+function TRedisServer.Sync: TRedisReturnType;
+begin
+  Result := send_command2('SYNC');
 end;
 
 { TRedisConnection }
