@@ -103,7 +103,7 @@ const
 '$23'#13#10 +
 'slowlog-log-slower-than'#13#10 +
 '$1'#13#10 +
-'1'#13#10 ;;
+'1'#13#10 ;
 
 procedure Debug(const s : String);
 begin
