@@ -1,14 +1,17 @@
+=====
 About
 =====
 The following code is an Object Pascal based Redis protocol implementation.
 The code itself was created for Free Pascal v2.6.0 and above.
 
+=======
 License
 =======
 The project is currently in modified LGPL 3 license. 
 I allow any free, open and commercial usage of this library, however any 
 changes, I do wish to see return back to the community.
 
+=====
 Files
 =====
 src/
@@ -57,11 +60,13 @@ examples/
   This directory will create few simple examples on how things works. 
   It aim will be quick and dirty getting started examples.
 
+============
 Dependencies 
 ============
 This version using Synapse using the svn version with the package for Lazarus.
 If you are interested in different Socket library, please contact me.
 
+======
 Notes:
 ======
 * The following code was created and tested by using Linux 64 bit with FPC 2.6.0
