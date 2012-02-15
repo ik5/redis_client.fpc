@@ -50,206 +50,6 @@ const
         'config'#13#10'$3'#13#10'set'#13#10'$23'#13#10                                  +
         'slowlog-log-slower-than'#13#10'$1'#13#10'1'#13#10;
 
-procedure Debug(const s : String);
-begin
-  writeln(stderr, s);
-end;
-
-procedure Debug(const s : String; Params : array of const);
-begin
-  writeln(stderr, Format(s, Params));
-end;
-
-// We are going to be recursive a bit, and more
-function ParseLine(const s : String; var loc : Cardinal) : TRedisReturnType; overload;
-
-function ParseSingleStart(const Line : String; var i : Cardinal) : TRedisReturnType; //inline;
-  function CreateSingleStart(const ch : Char) : TRedisReturnType;
-  begin
-   case ch of
-     RPLY_ERROR_CHAR  : Result := TRedisErrorReturnType.Create;
-     RPLY_INT_CHAR    : Result := TRedisNumericReturnType.Create;
-     RPLY_SINGLE_CHAR : Result := TRedisStatusReturnType.Create;
-   else
-     Result := nil;
-   end;
-  end;
-
-var j, len : integer;
-    tmp    : string;
-begin
-  tmp    := '';
-  len    := Length(Line);
-  Result := CreateSingleStart(Line[i-1]);
-  if Result = nil then
-    begin
-      Debug('CreateSingleStart: Result returned nil from class creation');
-      raise ERedisParserException.Create('Could not determin Line type.');
-      exit;
-    end;
-  Debug('CreateSingleStart: Line type: %s', [Result.ClassName]);
-
-  for j := i to len do
-    begin
-      // Ignore last CRLF at the end of the string
-      if (j = len-1) and ((LINE[j] = CR) and (Line[j+1] = LF)) then break;
-      // ignore the CRLF if we are nesting ...
-      if (LINE[j] = CR) and (Line[j+1] = LF)                   then break;
-      tmp := tmp + line[j];
-    end;
-  i := j;
-  Debug('CreateSingleStart: Item value [%s]', [tmp]);
-  Result.Value := tmp;
-end;
-
-function ParseBulk(const Line : String; var i : cardinal) : TRedisReturnType;
-var x, c, len : integer;
-    tmp       : string;
-begin
-  len    := Length(Line);
-  Result := nil;
-  Debug('ParseBulk, alength: %d, j: %d', [len, 2]);
-  // Something wrong. minumum length must be 4: $0#13#10
-  if len < 4 then
-    raise ERedisParserException.CreateFmt(
-     'Given line (%s) does not contain valid length.', [Line]);
-
-  tmp := '';
-  // Going to extract the length
-  while (i <= len-1) and (Line[i] <> CR) do
-   begin
-     tmp := tmp + Line[i];
-     inc(i);
-   end;
-
-  if not TryStrToInt(tmp, x) then
-    begin
-      {Error('ParseBulk: %s', [txtUnableToGetItemLength]);
-      if Assigned(Result) then
-        begin
-         Result.Free;
-         Result := nil;
-        end;
-      Raise ERedisParserException.Create(txtUnableToGetItemLength);}
-      exit;
-    end;
-
-    if x = -1 then
-      begin
-        Debug('ParseBulk: Length is null');
-        Result := TRedisNullReturnType.Create;
-        exit;
-      end
-    else
-      Result := TRedisBulkReturnType.Create;
-
-  Debug('ParseBulk: length is %d', [x]);
-  inc(i, 2); // go to the next value after #13#10
-  // Get the value from the string
-  tmp := '';
-  c   := 1; // Counter. We are going to do a for like loop ...
-  while (i <= len) and (c <= x) do
-   begin
-     tmp := tmp + Line[i];
-     inc(i);
-     inc(c);
-   end;
-
-  Debug('ParseBulk: item value [%s]', [tmp]);
-
-  Result.Value := tmp;
-end;
-
-function ParseMultiBulk(const Line : String; var i : Cardinal) : TRedisReturnType;
-var j, x, len : Integer;
-    tmp       : string;
-    Index     : Cardinal;
-begin
- len    := Length(Line);
- Result := nil;
- tmp    := '';
- Index  := i;
-
- Debug('ParseMuliBulk: i : [%d]', [i]);
-
- while (Index <= len) and (Line[Index] <> CR) do
-  begin
-    tmp := tmp + Line[Index];
-    inc(Index);
-  end;
-
- Debug('ParseMuliBulk: Looked for index, and found [%s]', [tmp]);
-
- if not TryStrToInt(tmp, x) then
-   begin
-     {Error('ParseMultiBulk: %s', [txtUnableToGetItemLength]);
-     if Assigned(Result) then
-       begin
-        Result.Free;
-        Result := nil;
-       end;
-     Raise ERedisParserException.Create(txtUnableToGetItemLength);}
-     exit;
-   end;
-
-   if x = -1 then
-     begin
-       Debug('ParseMultiBulk: Length is null');
-       Result := TRedisNullReturnType.Create;
-       i      := Index;
-       exit;
-     end
-   else
-    Result := TRedisMultiBulkReturnType.Create;
-
-  inc(index, 2);
-
-  for j := 1 to x do
-    begin
-      Debug('ParseMultiBulk: Going over Item #%d, Line[index]=%s',
-            [j, Line[Index]]);
-      TRedisMultiBulkReturnType(Result).Add(ParseLine(Line, index));
-      if Line[Index] = CR  then
-       inc(index, 2); // Ignore the last CRLF
-    end;
-
-  Debug('ParseMultiBulk: Before exiting the function. j [%d] index [%d],' +
-        ' items %d/%d', [j, index, TRedisMultiBulkReturnType(Result).Count, x]);
-  i := Index;
-end;
-
-var Index : Cardinal;
-
-begin
-  if Length(s) = 0 then
-    raise ERedisParserException.Create('Empty string was given to the parser')
-                                                 at get_caller_frame(get_frame);
-  Index := Loc +1;
-  Debug('ParseLine: Have Index=[%d], s[index]=[%s], s[index-1]=[%s]',
-        [Index, s[Index], s[Index -1]]);
-  case s[Index -1] of
-   // Single start return
-   RPLY_ERROR_CHAR,
-   RPLY_INT_CHAR,
-   RPLY_SINGLE_CHAR     : Result := ParseSingleStart(s, Index);
-   RPLY_BULK_CHAR       : Result := ParseBulk(s, Index);
-   RPLY_MULTI_BULK_CHAR : Result := ParseMultiBulk(s, Index);
-  else
-    //Error(txtUnknownString, [s]);
-    raise ERedisParserException.CreateFmt(txtUnknownString, [s]);
-  end; // case s[index] of
-
-  Debug('ParseLine: Index=[%d]', [Index]);
-  Loc := Index;
-end; // function
-
-function ParseLine(const s : String) : TRedisReturnType; overload;
-var Index : Cardinal;
-begin
-  Index  := 1;
-  Result := ParseLine(s, Index);
-end;
-
 procedure print_multi_bulk(list : TRedisReturnType; depth : integer =0);
 var
   i : integer;
@@ -273,10 +73,10 @@ end;
 
 var
   r  : TRedisReturnType;
-  //parser : TRedisParser;
+  parser : TRedisParser;
 
 begin
-  {parser := TRedisParser.Create;
+  parser := TRedisParser.Create;
   writeln(s1, ' ', parser.GetAnswerType(s1));
   writeln(s2, ' ', parser.GetAnswerType(s2));
   writeln(s3, ' ', parser.GetAnswerType(s3));
@@ -285,45 +85,46 @@ begin
   writeln(s6, ' ', parser.GetAnswerType(s6));
   writeln(s7, ' ', parser.GetAnswerType(s7));
   writeln(s8, ' ', parser.GetAnswerType(s8));
-  writeln;}
+  writeln;
 
-  r := {parser.}ParseLine(s1);
+  r := parser.ParseLine(s1);
   writeln('Going over s1 (', s1, ') : [', r.Value, ']', ' ', r.IsNill);
   r.Free;
-  r := {parser.}ParseLine(s5);
+  r := parser.ParseLine(s5);
   writeln('Going over s5 (', s5, ') : [', r.Value, ']', ' ', r.IsNill);
   r.Free;
-  r := {parser.}ParseLine(s3);
+  r := parser.ParseLine(s3);
   writeln('Going over s3 (', s3, ') : [', r.Value, ']', ' ', r.IsNill);
   r.Free;
-  r := {parser.}ParseLine(s4);
+  r := parser.ParseLine(s4);
   writeln('Going over s4 (', s4, ') : [', r.Value, ']', ' ', r.IsNill);
   r.Free;
-  r := {parser.}ParseLine(s6);
+  r := parser.ParseLine(s6);
   writeln('Going over s6 (', s6, ') : [', r.Value, ']', ' ', r.IsNill);
   r.Free;
-  r := {parser.}ParseLine(s7);
+  r := parser.ParseLine(s7);
   writeln('Going over s7 (', s7, ') : [', r.Value, ']', ' ', r.IsNill);
   r.Free;
-  r := {parser.}ParseLine(s8);
+  r := parser.ParseLine(s8);
   writeln('Going over s8 (', s8, ') - len=', Length(s8),
           ' : [', r.Value, '] ', r.IsNill);
   r.Free;
 
-  r := {parser.}ParseLine(s2);
+  r := parser.ParseLine(s2);
   writeln('Going over s2 (', s2, ') :');
   print_multi_bulk(TRedisMultiBulkReturnType(r));
   r.Free;
 
-  r := {parser.}ParseLine(s9);
+  r := parser.ParseLine(s9);
   Writeln('Going over s9 (', s9, ') :');
   print_multi_bulk(TRedisMultiBulkReturnType(r));
   r.Free;
 
-  r := {parser.}ParseLine(s10);
+  r := parser.ParseLine(s10);
   Writeln('Going over s10 (', s10, ') :');
   print_multi_bulk(TRedisMultiBulkReturnType(r));
   r.Free;
-  //parser.Free;
+
+  parser.Free;
 end.
 
