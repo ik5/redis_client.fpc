@@ -879,15 +879,14 @@ type
   end;
 
   (*
-    At the moment this version of redis does not support transactions.
-    It just implement the commands themselvs.
-
     For more information on Transactions:
     http://redis.io/topics/transactions
    *)
   TRedisTransaction = class (TRedisCommands)
   public
     property Socket;
+
+
   published
     property ErrorCode;
     property Logger;
