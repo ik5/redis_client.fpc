@@ -36,74 +36,19 @@ const
         '*4'#13#10'$6'#13#10'CONFIG'#13#10'$3'#13#10'SET'#13#10                         +
         '$23'#13#10'slowlog-log-slower-than'#13#10'$1'#13#10'1'#13#10;
 
-  s10 ='*7'#13#10 +
-'*4'#13#10 +
-':6'#13#10 +
-':1329305090'#13#10 +
-':15'#13#10 +
-'*2'#13#10 +
-'$7'#13#10 +
-'slowlog'#13#10 +
-'$3'#13#10 +
-'get'#13#10 +
-'*4'#13#10 +
-':5'#13#10 +
-':1329305021'#13#10 +
-':20'#13#10 +
-'*2'#13#10 +
-'$7'#13#10 +
-'slowlog'#13#10 +
-'$3'#13#10 +
-'get'#13#10 +
-'*4'#13#10 +
-':4'#13#10 +
-':1329305006'#13#10 +
-':20'#13#10 +
-'*2'#13#10 +
-'$7'#13#10 +
-'slowlog'#13#10 +
-'$3'#13#10 +
-'get'#13#10 +
-'*4'#13#10 +
-':3'#13#10 +
-':1329304995'#13#10 +
-':19'#13#10 +
-'*2'#13#10 +
-'$7'#13#10 +
-'slowlog'#13#10 +
-'$3'#13#10 +
-'get'#13#10 +
-'*4'#13#10 +
-':2'#13#10 +
-':1329304983'#13#10 +
-':20'#13#10 +
-'*2'#13#10 +
-'$7'#13#10 +
-'slowlog'#13#10 +
-'$3'#13#10 +
-'get'#13#10 +
-'*4'#13#10 +
-':1'#13#10 +
-':1329304977'#13#10 +
-':11'#13#10 +
-'*2'#13#10 +
-'$7'#13#10 +
-'slowlog'#13#10 +
-'$3'#13#10 +
-'get'#13#10 +
-'*4'#13#10 +
-':0'#13#10 +
-':1329304975'#13#10 +
-':12771'#13#10 +
-'*4'#13#10 +
-'$6'#13#10 +
-'config'#13#10 +
-'$3'#13#10 +
-'set'#13#10 +
-'$23'#13#10 +
-'slowlog-log-slower-than'#13#10 +
-'$1'#13#10 +
-'1'#13#10 ;
+  s10 = '*7'#13#10'*4'#13#10':6'#13#10':1329305090'#13#10':15'#13#10'*2'#13#10          +
+        '$7'#13#10'slowlog'#13#10'$3'#13#10'get'#13#10'*4'#13#10':5'#13#10              +
+        ':1329305021'#13#10':20'#13#10'*2'#13#10'$7'#13#10'slowlog'#13#10               +
+        '$3'#13#10'get'#13#10'*4'#13#10':4'#13#10':1329305006'#13#10':20'#13#10         +
+        '*2'#13#10'$7'#13#10'slowlog'#13#10'$3'#13#10'get'#13#10'*4'#13#10              +
+        ':3'#13#10':1329304995'#13#10':19'#13#10'*2'#13#10'$7'#13#10                    +
+        'slowlog'#13#10'$3'#13#10'get'#13#10'*4'#13#10':2'#13#10                        +
+        ':1329304983'#13#10':20'#13#10'*2'#13#10'$7'#13#10'slowlog'#13#10               +
+        '$3'#13#10'get'#13#10'*4'#13#10':1'#13#10':1329304977'#13#10':11'#13#10         +
+        '*2'#13#10'$7'#13#10'slowlog'#13#10'$3'#13#10'get'#13#10'*4'#13#10              +
+        ':0'#13#10':1329304975'#13#10':12771'#13#10'*4'#13#10'$6'#13#10                 +
+        'config'#13#10'$3'#13#10'set'#13#10'$23'#13#10                                  +
+        'slowlog-log-slower-than'#13#10'$1'#13#10'1'#13#10;
 
 procedure Debug(const s : String);
 begin
@@ -264,13 +209,12 @@ begin
       Debug('ParseMultiBulk: Going over Item #%d, Line[index]=%s',
             [j, Line[Index]]);
       TRedisMultiBulkReturnType(Result).Add(ParseLine(Line, index));
-      inc(index, 2); // Ignore the last CRLF
+      if Line[Index] = CR  then
+       inc(index, 2); // Ignore the last CRLF
     end;
 
-  Debug('ParseMultiBulk: Before exiting the function. j [%d]', [j]);
-  Debug('ParseMultiBulk: Before exiting the function. Index [%d]', [index]);
-  Debug('ParseMultiBulk: Before exiting the function. Number of Items %d/%d',
-        [TRedisMultiBulkReturnType(Result).Count, x]);
+  Debug('ParseMultiBulk: Before exiting the function. j [%d] index [%d],'
+       +' items %d/%d', [j, index, TRedisMultiBulkReturnType(Result).Count, x]);
   i := Index;
 end;
 
@@ -281,7 +225,8 @@ begin
     raise ERedisParserException.Create('Empty string was given to the parser')
                                                  at get_caller_frame(get_frame);
   Index := Loc +1;
-  Debug('ParseLine: Have Index=[%d], s[index-1]=[%s]', [Index, s[Index -1]]);
+  Debug('ParseLine: Have Index=[%d], s[index]=[%s], s[index-1]=[%s]',
+        [Index, s[Index], s[Index -1]]);
   case s[Index -1] of
    // Single start return
    RPLY_ERROR_CHAR,
