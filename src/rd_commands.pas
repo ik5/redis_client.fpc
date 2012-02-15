@@ -61,16 +61,11 @@ type
   { TRedisParser }
 
   TRedisParser = class(TRedisObject)
-  public
-    type
-      TArrStringList = array of string;
   protected
-    function split_bulk(const s : string) : TArrStringList;
 
   public
     function GetAnswerType(const s : string) : TRedisAnswerType;
 
-    {%TODO: Make this better and more efficient and safe}
     (*
         Convert proper redis string to TRedisAnswerType
         Parameters:
@@ -90,7 +85,14 @@ type
           It will work only with single request, and will ignore or raise
           exception on multiple requests.
      *)
-    function ParseLine(const s : string) : TRedisReturnType;
+    function ParseLine(const s : string)   : TRedisReturnType; overload;
+
+    (*
+
+     *)
+    function ParseLine(const s : String;
+                       var loc : Cardinal) : TRedisReturnType; overload;
+
   published
     property Logger;
   end;
@@ -837,9 +839,11 @@ type
   end;
 
 resourcestring
-  txtMissingIO             = 'No RedisIO object was provided';
-  txtUnableToGetItemLength = 'Unable to get proper item length.';
-  txtUnknownString         = 'Unknown string was given : %s';
+  txtMissingIO                = 'No RedisIO object was provided';
+  txtUnableToGetItemLength    = 'Unable to get proper item length.';
+  txtGivenLineNoValidLength   = 'Given line (%s) does not contain valid length.';
+  txtUnknownString            = 'Unknown string was given : %s';
+  txtEmptyStringGivenToParser = 'Empty string was given to the parser';
 
 implementation
 
@@ -1043,157 +1047,192 @@ begin
 end;
 
 function TRedisParser.ParseLine(const s: string): TRedisReturnType;
-  function GetBulkItem(ALine : String) : TRedisReturnType;
-  var
-    alength,
-    j, x, c  : integer;
-    tmps     : string;
-  begin
-    alength := Length(Aline);
-    j       := 2;
-    tmps    := '';
-    Debug('GetBulkItem, alength: %d, j: %d', [alength, j]);
-    while (j <= alength) and (ALine[j] <> #13) do
-     begin
-       tmps := tmps + ALine[j]; // Get the length of the item
-       inc(j);
-     end;
+var Index : Cardinal;
+begin
+ Index  := 1;
+ Result := ParseLine(s, Index);
+end;
 
-    if not TryStrToInt(tmps, x) then
-      begin
-        Error('GetBulkItem: %s', [txtUnableToGetItemLength]);
-        if Assigned(Result) then
-          begin
-           Result.Free;
-           Result := nil;
-          end;
-        Raise ERedisException.Create(txtUnableToGetItemLength);
-      end;
+function TRedisParser.ParseLine(const s: String; var loc: Cardinal
+): TRedisReturnType;
+
+function ParseSingleStart(const Line : String; var i : Cardinal) : TRedisReturnType; //inline;
+  function CreateSingleStart(const ch : Char) : TRedisReturnType;
+  begin
+   case ch of
+     RPLY_ERROR_CHAR  : Result := TRedisErrorReturnType.Create;
+     RPLY_INT_CHAR    : Result := TRedisNumericReturnType.Create;
+     RPLY_SINGLE_CHAR : Result := TRedisStatusReturnType.Create;
+   else
+     Result := nil;
+   end;
+  end;
+
+var j, len : integer;
+    tmp    : string;
+begin
+  tmp    := '';
+  len    := Length(Line);
+  Result := CreateSingleStart(Line[i-1]);
+  if Result = nil then
+    begin
+      Debug('CreateSingleStart: Result returned nil from class creation');
+      raise ERedisParserException.CreateFmt(txtUnknownString, [Line]);
+      exit;
+    end;
+  Debug('CreateSingleStart: Line type: %s', [Result.ClassName]);
+
+  for j := i to len do
+    begin
+      // Ignore last CRLF at the end of the string
+      if (j = len-1) and ((LINE[j] = CR) and (Line[j+1] = LF)) then break;
+      // ignore the CRLF if we are nesting ...
+      if (LINE[j] = CR) and (Line[j+1] = LF)                   then break;
+      tmp := tmp + line[j];
+    end;
+  i := j;
+  Debug('CreateSingleStart: Item value [%s]', [tmp]);
+  Result.Value := tmp;
+end;
+
+function ParseBulk(const Line : String; var i : cardinal) : TRedisReturnType;
+var x, c, len : integer;
+    tmp       : string;
+begin
+  len    := Length(Line);
+  Result := nil;
+  Debug('ParseBulk, alength: %d, j: %d', [len, 2]);
+  // Something wrong. minumum length must be 4: $0#13#10
+  if len < 4 then
+    raise ERedisParserException.CreateFmt(txtGivenLineNoValidLength, [Line]);
+
+  tmp := '';
+  // Going to extract the length
+  while (i <= len-1) and (Line[i] <> CR) do
+   begin
+     tmp := tmp + Line[i];
+     inc(i);
+   end;
+
+  if not TryStrToInt(tmp, x) then
+    begin
+      Error('ParseBulk: %s', [txtUnableToGetItemLength]);
+      if Assigned(Result) then
+        begin
+         Result.Free;
+         Result := nil;
+        end;
+      Raise ERedisParserException.Create(txtUnableToGetItemLength);
+      exit;
+    end;
 
     if x = -1 then
       begin
-        debug('GetBulkItem: Length is null');
+        Debug('ParseBulk: Length is null');
         Result := TRedisNullReturnType.Create;
         exit;
       end
     else
       Result := TRedisBulkReturnType.Create;
 
-    debug('GetBulkItem: length is %d', [x]);
-    inc(j, 2); // go to the next value after #13#10
-    // Get the value from the string
-    tmps := '';
-    c    := 1; // Counter. We are going to do a for like loop ...
-    while (j <= alength) and (c <= x) do
-     begin
-       tmps := tmps + ALine[j];
-       inc(j);
-       inc(c);
-     end;
+  Debug('ParseBulk: length is %d', [x]);
+  inc(i, 2); // go to the next value after #13#10
+  // Get the value from the string
+  tmp := '';
+  c   := 1; // Counter. We are going to do a for like loop ...
+  while (i <= len) and (c <= x) do
+   begin
+     tmp := tmp + Line[i];
+     inc(i);
+     inc(c);
+   end;
 
-    debug('GetBulkItem: item value [%s]', [tmps]);
+  Debug('ParseBulk: item value [%s]', [tmp]);
 
-    Result.Value := tmps;
-  end;
-
-var
-  i, l : integer;
-  tmp  : String;
-  list : TArrStringList;
-
-begin
-  Result := Nil;
-  l      := Length(s);
-  if l = 0 then exit;
-  i      := 1;
-  tmp    := '';
-
-  case s[i] of
-  // Single start return
-   RPLY_ERROR_CHAR,
-   RPLY_INT_CHAR,
-   RPLY_SINGLE_CHAR     :
-     begin
-      case s[i] of
-        RPLY_ERROR_CHAR  : Result := TRedisErrorReturnType.Create;
-        RPLY_INT_CHAR    : Result := TRedisNumericReturnType.Create;
-        RPLY_SINGLE_CHAR : Result := TRedisStatusReturnType.Create;
-      end;
-
-      Debug('ParseLine: Line type: %s', [Result.ClassName]);
-      inc(i);
-      while (  i  <= l  ) and
-            (s[i] <> #13)     do
-        begin
-          tmp := tmp + s[i];
-          inc(i);
-        end;
-
-      Debug('ParseLine: Item value [%s]', [tmp]);
-      Result.Value := tmp;
-     end;
-   RPLY_BULK_CHAR       : begin
-                            Debug('ParseLine: line type: %s',
-                                   ['TRedisBulkReturnType']);
-                            Result := GetBulkItem(s);
-                          end;
-   RPLY_MULTI_BULK_CHAR :
-     begin
-       Debug('ParseLine: line type: %s', ['TRedisMultiBulkReturnType']);
-       list := split_bulk(s);
-       if Length(list) > 0 then
-         Result := TRedisMultiBulkReturnType.Create
-       else begin
-             Debug('ParseLine: no content found for list.');
-             Result := TRedisNullReturnType.Create;
-             exit;
-            end;
-
-       for i := Low(list) to high(list) do
-         begin
-           Debug('ParseLine: list[%d] = [%s]', [i, list[i]]);
-           TRedisMultiBulkReturnType(Result).Add(ParseLine(list[i]));
-         end;
-     end;
-  else
-    Error(txtUnknownString, [s]);
-    raise ERedisException.CreateFmt(txtUnknownString, [s]);
-  end;
+  Result.Value := tmp;
 end;
 
-function TRedisParser.split_bulk(const s : string) : TArrStringList;
-var
-  l, i, c, idx : integer;
-  function extract_length(var ai : integer) : string;
+function ParseMultiBulk(const Line : String; var i : Cardinal) : TRedisReturnType;
+var j, x, len : Integer;
+    tmp       : string;
+    Index     : Cardinal;
+begin
+ len    := Length(Line);
+ Result := nil;
+ tmp    := '';
+ Index  := i;
+
+ Debug('ParseMuliBulk: i : [%d]', [i]);
+
+ while (Index <= len) and (Line[Index] <> CR) do
   begin
-    Result := '';
-    while (s[ai] <> #13) and (ai < l) do
-      begin
-        if s[ai] in ['0'..'9'] then
-          result := result + s[ai];
-        inc(ai);
-      end;
+    tmp := tmp + Line[Index];
+    inc(Index);
   end;
 
-begin
-  i   := 1;
-  l   := Length(s);
-  idx := -1;
-  c   := StrToInt(extract_length(i));
-  SetLength(Result, c);
-  inc(i,2);
+ Debug('ParseMuliBulk: Looked for index, and found [%s]', [tmp]);
 
-  while (i < l) and (idx+1 <= c) do
-    begin
-     if (s[i] = '$') then
+ if not TryStrToInt(tmp, x) then
+   begin
+     Error('ParseMultiBulk: %s', [txtUnableToGetItemLength]);
+     if Assigned(Result) then
        begin
-        inc(idx);
-        result[idx] := '';
+        Result.Free;
+        Result := nil;
        end;
-     result[idx] := result[idx] + s[i];
-     inc(i);
+     Raise ERedisParserException.Create(txtUnableToGetItemLength);
+     exit;
+   end;
+
+   if x = -1 then
+     begin
+       Debug('ParseMultiBulk: Length is null');
+       Result := TRedisNullReturnType.Create;
+       i      := Index;
+       exit;
+     end
+   else
+    Result := TRedisMultiBulkReturnType.Create;
+
+  inc(index, 2);
+
+  for j := 1 to x do
+    begin
+      Debug('ParseMultiBulk: Going over Item #%d, Line[index]=%s',
+            [j, Line[Index]]);
+      TRedisMultiBulkReturnType(Result).Add(ParseLine(Line, index));
+      if Line[Index] = CR  then
+       inc(index, 2); // Ignore the last CRLF
     end;
 
+  Debug('ParseMultiBulk: Before exiting the function. j [%d] index [%d],' +
+        ' items %d/%d', [j, index, TRedisMultiBulkReturnType(Result).Count, x]);
+  i := Index;
+end;
+
+var Index : Cardinal;
+
+begin
+  if Length(s) = 0 then
+    raise ERedisParserException.Create(txtEmptyStringGivenToParser)
+                                                 at get_caller_frame(get_frame);
+  Index := Loc +1;
+  Debug('ParseLine: Have Index=[%d], s[index]=[%s], s[index-1]=[%s]',
+        [Index, s[Index], s[Index -1]]);
+  case s[Index -1] of
+   // Single start return
+   RPLY_ERROR_CHAR,
+   RPLY_INT_CHAR,
+   RPLY_SINGLE_CHAR     : Result := ParseSingleStart(s, Index);
+   RPLY_BULK_CHAR       : Result := ParseBulk(s, Index);
+   RPLY_MULTI_BULK_CHAR : Result := ParseMultiBulk(s, Index);
+  else
+    //Error(txtUnknownString, [s]);
+    raise ERedisParserException.CreateFmt(txtUnknownString, [s]);
+  end; // case s[index] of
+
+  Debug('ParseLine: Index=[%d]', [Index]);
+  Loc := Index;
 end;
 
 { TRedisCommands }
