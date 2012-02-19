@@ -923,7 +923,25 @@ type
     function Exec : TRedisReturnType; virtual;
 
     (*
+     Flushes all previously queued commands in a transaction and restores the
+     connection state to normal.
+     If WATCH was used, DISCARD unwatches all keys.
 
+     Returns:
+      * TRedisStatusReturnType on success (most of the times)
+      * TRedisErrorReturnType on failure
+      * nil on exception
+
+     Exceptions:
+      * ERedisException - When something went wrong in the parsing or with
+                          the socket
+
+     Note:
+      If WATCH was used but no MULTI, this command will return an error:
+      ERR DISCARD without MULTI
+
+      So, only UNWATCH command can be used to unWATCH keys without sending
+      MULTI.
      *)
     function Discard : TRedisReturnType; virtual;
   published
