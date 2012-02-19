@@ -946,7 +946,28 @@ type
     function Discard : TRedisReturnType; virtual;
 
     (*
+     Marks the given keys to be watched for conditional execution of a
+     transaction.
 
+     Parameters:
+      * keys - A list of keys to be watched.
+               The key does not have to be existed at the time of calling watch
+
+     Returns:
+      * TRedisStatusReturnType on success (most of the times)
+      * TRedisErrorReturnType on failure
+      * nil on exception
+
+     Exceptions:
+      * ERedisException - When something went wrong in the parsing or with
+                          the socket
+
+     Note:
+      The Watch command makes the transaction to cancel itself if there was a
+      change to one of the keys, and rollback comannds that not yet executed.
+      This form of locking is called optimistic locking.
+
+      When that happens, you should retry to execute the commands.
      *)
     function Watch(keys : array of const) : TRedisReturnType; virtual;
   published
