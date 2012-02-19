@@ -118,9 +118,9 @@ type
     property Logger;
   end;
 
-  { TRedisCommands }
+  { TRedisAbstractCommands }
 
-  TRedisCommands = class(TRedisObject)
+  TRedisAbstractCommands = class(TRedisObject)
   protected
     FIO          : TRedisIO;
     FERROR       : Integer;
@@ -214,7 +214,7 @@ type
 
   { TRedisConnection }
 
-  TRedisConnection = class(TRedisCommands)
+  TRedisConnection = class(TRedisAbstractCommands)
   public
     property Socket;
 
@@ -312,7 +312,7 @@ type
 
   { TRedisServer }
 
-  TRedisServer = class(TRedisCommands)
+  TRedisServer = class(TRedisAbstractCommands)
   public
     property Socket;
 
@@ -880,7 +880,7 @@ type
 
   { TRedisTransaction }
 
-  TRedisTransaction = class (TRedisCommands)
+  TRedisTransaction = class (TRedisAbstractCommands)
   (*
     For more information on Transactions:
     http://redis.io/topics/transactions
@@ -989,7 +989,7 @@ type
 
   { TRedisKeys }
 
-  TRedisKeys = class (TRedisCommands)
+  TRedisKeys = class (TRedisAbstractCommands)
   public
     property Socket;
 
@@ -1430,9 +1430,9 @@ begin
   Loc := Index;
 end;
 
-{ TRedisCommands }
+{ TRedisAbstractCommands }
 
-constructor TRedisCommands.Create(AIO : TRedisIO);
+constructor TRedisAbstractCommands.Create(AIO : TRedisIO);
 begin
   if Assigned(AIO) then
     begin
@@ -1456,13 +1456,13 @@ begin
   inherited Create; // Call parent create
 end;
 
-destructor TRedisCommands.Destroy;
+destructor TRedisAbstractCommands.Destroy;
 begin
   FreeAndNil(FRedisParser);
   inherited Destroy;
 end;
 
-function TRedisCommands.ParamsToStr(params: array of const): String;
+function TRedisAbstractCommands.ParamsToStr(params: array of const): String;
 var i : integer;
 
 const
@@ -1553,12 +1553,12 @@ begin
   FError := ERROR_OK;
 end;
 
-function TRedisCommands.GetSocket : TTCPBlockSocket;
+function TRedisAbstractCommands.GetSocket : TTCPBlockSocket;
 begin
  Result := FIO.Socket;
 end;
 
-procedure TRedisCommands.RedisIOErrorEvent(Sender: TObject; var Handled: Boolean
+procedure TRedisAbstractCommands.RedisIOErrorEvent(Sender: TObject; var Handled: Boolean
   );
 begin
   debug('An error from the socket was raised.');
@@ -1566,7 +1566,7 @@ begin
    FOnError(Sender, Handled);
 end;
 
-function TRedisCommands.AddFirstToVarRec(s: string;
+function TRedisAbstractCommands.AddFirstToVarRec(s: string;
   arr: array of const) : TVarRecs;
 var
   i : integer;
@@ -1578,7 +1578,7 @@ begin
    Result[i+1] := arr[i];
 end;
 
-function TRedisCommands.build_raw_command(const command : String;
+function TRedisAbstractCommands.build_raw_command(const command : String;
   params: array of const): string;
 var
   cmd     : string;
@@ -1622,7 +1622,7 @@ begin
   FError := ERROR_OK;
 end;
 
-function TRedisCommands.send_command(const command: String;
+function TRedisAbstractCommands.send_command(const command: String;
   params: array of const): string;
 var cmd     : string;
     Handled : Boolean;
@@ -1647,7 +1647,7 @@ begin
  Result := FIO.raw_send_command(cmd);
 end;
 
-function TRedisCommands.send_command2(const command: String;
+function TRedisAbstractCommands.send_command2(const command: String;
   params: array of const): TRedisReturnType;
 var return  : string;
     handled : Boolean;
@@ -1670,7 +1670,7 @@ begin
   end;
 end;
 
-function TRedisCommands.send_command2(const command: String): TRedisReturnType;
+function TRedisAbstractCommands.send_command2(const command: String): TRedisReturnType;
 begin
   Result := send_command2(command, []);
 end;
