@@ -972,9 +972,14 @@ type
     function Watch(keys : array of const) : TRedisReturnType; virtual;
 
     (*
+     Flushes all the previously watched keys for a transaction.
+     If you call EXEC or DISCARD, there's no need to manually call UNWATCH.
 
+     Exceptions:
+      * ERedisException - When something went wrong in the parsing or with
+                          the socket
      *)
-    procedure Unwatch; virtual;
+    procedure UnWatch; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -1013,7 +1018,7 @@ begin
   Result := send_command2('WATCH', keys);
 end;
 
-procedure TRedisTransaction.Unwatch;
+procedure TRedisTransaction.UnWatch;
 begin
   send_command2('UNWATCH');
 end;
