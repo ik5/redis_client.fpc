@@ -912,6 +912,8 @@ type
        * TRedisMultiBulkReturnType with the answer of each command executed.
                                    It keeps the order of the answer to the
                                    order of the commands.
+       * TRedisNullReturnType on usage of WATCH and failure to execute the
+                              command
        * nil on exception
 
      Exceptions:
