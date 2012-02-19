@@ -882,11 +882,17 @@ type
     For more information on Transactions:
     http://redis.io/topics/transactions
    *)
+
+  { TRedisTransaction }
+
   TRedisTransaction = class (TRedisCommands)
   public
     property Socket;
 
+    (*
 
+     *)
+    function Multi : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -902,6 +908,13 @@ resourcestring
   txtEmptyStringGivenToParser = 'Empty string was given to the parser';
 
 implementation
+
+{ TRedisTransaction }
+
+function TRedisTransaction.Multi: TRedisReturnType;
+begin
+  Result := send_command2('MULTI');
+end;
 
 { TRedisServer }
 
