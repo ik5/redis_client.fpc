@@ -878,19 +878,29 @@ type
     property OnError;
   end;
 
+  { TRedisTransaction }
+
+  TRedisTransaction = class (TRedisCommands)
   (*
     For more information on Transactions:
     http://redis.io/topics/transactions
    *)
-
-  { TRedisTransaction }
-
-  TRedisTransaction = class (TRedisCommands)
   public
     property Socket;
 
     (*
+     Multi is a command to start a transaction
+     Redis Transaction are does continue if there is a syntax error of a
+     command, so do not use transaction with a lot of commands inside.
 
+     Returns:
+      * TRedisStatusReturnType on success (most of the times)
+      * TRedisErrorReturnType on failure
+      * nil on exception
+
+     Exceptions:
+      * ERedisException - When something went wrong in the parsing or with
+                          the socket
      *)
     function Multi : TRedisReturnType; virtual;
   published
