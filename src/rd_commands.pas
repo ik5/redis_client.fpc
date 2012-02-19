@@ -903,6 +903,22 @@ type
                           the socket
      *)
     function Multi : TRedisReturnType; virtual;
+
+    (*
+      Try to execute the commands inside the transaction.
+
+      Returns:
+       * TRedisErrorReturnType on failure
+       * TRedisMultiBulkReturnType with the answer of each command executed.
+                                   It keeps the order of the answer to the
+                                   order of the commands.
+       * nil on exception
+
+     Exceptions:
+      * ERedisException - When something went wrong in the parsing or with
+                          the socket
+     *)
+    function Exec : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -924,6 +940,11 @@ implementation
 function TRedisTransaction.Multi: TRedisReturnType;
 begin
   Result := send_command2('MULTI');
+end;
+
+function TRedisTransaction.Exec: TRedisReturnType;
+begin
+  Result := send_command2('EXEC');
 end;
 
 { TRedisServer }
