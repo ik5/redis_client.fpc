@@ -944,6 +944,11 @@ type
       MULTI.
      *)
     function Discard : TRedisReturnType; virtual;
+
+    (*
+
+     *)
+    function Watch(keys : array of const) : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -975,6 +980,11 @@ end;
 function TRedisTransaction.Discard: TRedisReturnType;
 begin
   Result := send_command2('DISCARD');
+end;
+
+function TRedisTransaction.Watch(keys: array of const): TRedisReturnType;
+begin
+  Result := send_command2('WATCH', keys);
 end;
 
 { TRedisServer }
