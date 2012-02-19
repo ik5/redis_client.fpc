@@ -987,9 +987,9 @@ type
     property OnError;
   end;
 
-  { TRedisKeys }
+  { TRedisDBCommands }
 
-  TRedisKeys = class (TRedisAbstractCommands)
+  TRedisDBCommands = class (TRedisAbstractCommands)
   public
     property Socket;
 
