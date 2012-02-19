@@ -970,6 +970,11 @@ type
       When that happens, you should retry to execute the commands.
      *)
     function Watch(keys : array of const) : TRedisReturnType; virtual;
+
+    (*
+
+     *)
+    procedure Unwatch; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -1006,6 +1011,11 @@ end;
 function TRedisTransaction.Watch(keys: array of const): TRedisReturnType;
 begin
   Result := send_command2('WATCH', keys);
+end;
+
+procedure TRedisTransaction.Unwatch;
+begin
+  send_command2('UNWATCH');
 end;
 
 { TRedisServer }
