@@ -921,6 +921,11 @@ type
                           the socket
      *)
     function Exec : TRedisReturnType; virtual;
+
+    (*
+
+     *)
+    function Discard : TRedisReturnType; virtual;
   published
     property ErrorCode;
     property Logger;
@@ -947,6 +952,11 @@ end;
 function TRedisTransaction.Exec: TRedisReturnType;
 begin
   Result := send_command2('EXEC');
+end;
+
+function TRedisTransaction.Discard: TRedisReturnType;
+begin
+  Result := send_command2('DISCARD');
 end;
 
 { TRedisServer }
