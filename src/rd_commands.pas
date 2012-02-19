@@ -987,6 +987,20 @@ type
     property OnError;
   end;
 
+  { TRedisKeys }
+
+  TRedisKeys = class (TRedisCommands)
+  public
+    property Socket;
+
+
+  published
+    property ErrorCode;
+    property Logger;
+
+    property OnError;
+  end;
+
 resourcestring
   txtMissingIO                = 'No RedisIO object was provided';
   txtUnableToGetItemLength    = 'Unable to get proper item length.';
